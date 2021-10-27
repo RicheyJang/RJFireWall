@@ -1,0 +1,37 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                // "/lib/modules/4.15.0-112-generic/build/include/**",
+                // "/usr/local/include/**",
+                // "/lib/modules/4.15.0-112-generic/build/arch/x86/include/**"
+                "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include",
+                "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include/generated",
+                "/usr/src/linux-headers-4.15.0-112-generic/include",
+                "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include/uapi",
+                "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include/generated/uapi",
+                "/usr/src/linux-headers-4.15.0-112-generic/include/uapi",
+                "/usr/src/linux-headers-4.15.0-112-generic/include/generated/uapi",
+                "/usr/src/linux-headers-4.15.0-112-generic/ubuntu/include",
+                "/usr/lib/gcc/x86_64-linux-gnu/5/include"
+                // "/usr/src/linux-headers-4.15.0-112/arch/ia64/include",
+                // "/usr/src/linux-headers-4.15.0-112/include/uapi"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compilerArgs": [
+                "-nostdinc",
+                "-include", "/usr/src/linux-headers-4.15.0-112-generic/include/linux/kconfig.h",
+                "-include", "/usr/src/linux-headers-4.15.0-112-generic/include/linux/compiler_types.h"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "module.h": "c",
+        "percpu.h": "c",
+        "skbuff.h": "c",
+        "types.h": "c",
+        "version.h": "c",
+        "spinlock.h": "c",
+        "net.h": "c"
+    },
+}
