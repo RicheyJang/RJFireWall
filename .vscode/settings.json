@@ -6,6 +6,10 @@
         "types.h": "c",
         "version.h": "c",
         "spinlock.h": "c",
-        "net.h": "c"
+        "net.h": "c",
+        "ip.h": "c",
+        "dependency.h": "c",
+        "byteorder.h": "c",
+        "netfilter_ipv4.h": "c"
     },
 }

@@ -1,11 +1,21 @@
-#KERN_DIR = /usr/src/$(shell uname -r)
-KERN_DIR = /lib/modules/$(shell uname -r)/build
-myfw-objs := my_firewall.o #my_dev.o
-obj-m += myfw.o
+MODULE_NAME	= myfw
+
+SRC := hooks/hook_main.c mod_main.c
+
+KDIR := /lib/modules/$(shell uname -r)/build
+
+$(MODULE_NAME)-objs = $(SRC:.c=.o)
+
+obj-m := $(MODULE_NAME).o
+PWD := $(shell pwd)
+
+EXTRA_CFLAGS := -I$(src)/include -I$(src)/hooks
+#ccflags-y := -I$(PWD)/include -I$(PWD)/hooks
 
 all:
-	make -C $(KERN_DIR) M=$(shell pwd) modules   
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+
 clean:                                  
-	make -C $(KERN_DIR) M=$(shell pwd) modules clean
+	$(MAKE) -C $(KDIR) M=$(PWD) modules clean
 	rm -rf modules.order
 	rm -f *.symvers

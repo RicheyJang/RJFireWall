@@ -3,9 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                // "/lib/modules/4.15.0-112-generic/build/include/**",
-                // "/usr/local/include/**",
-                // "/lib/modules/4.15.0-112-generic/build/arch/x86/include/**"
+                "${workspaceFolder}/**",
                 "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include",
                 "/usr/src/linux-headers-4.15.0-112-generic/arch/x86/include/generated",
                 "/usr/src/linux-headers-4.15.0-112-generic/include",
