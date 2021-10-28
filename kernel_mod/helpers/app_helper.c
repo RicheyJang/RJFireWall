@@ -1,5 +1,5 @@
-// #include "helper.h"
+#include "helper.h"
 
-// int dealAppMessage(char *msg, unsigned int len) {
-
-// }
+int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
+    nlSend(pid, msg, len);
+}

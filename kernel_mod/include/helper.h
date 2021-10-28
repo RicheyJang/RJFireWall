@@ -9,9 +9,9 @@
 
 struct sock *netlinkInit(void);
 void netlinkRelease(void);
-int nlSend(unsigned int pid, uint8_t *info, unsigned int len);
+int nlSend(unsigned int pid, void *data, unsigned int len);
 
 // ----- 应用交互相关 -------
-
+int dealAppMessage(unsigned int pid, void *msg, unsigned int len);
 
 #endif
