@@ -12,5 +12,6 @@
 #include <linux/tcp.h>
 #include <linux/udp.h>
 #include <linux/icmp.h>
+#include <linux/spinlock.h>
 
 #endif

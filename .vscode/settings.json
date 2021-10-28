@@ -13,6 +13,7 @@
         "netfilter_ipv4.h": "c",
         "rtnetlink.h": "c",
         "netlink.h": "c",
-        "helper.h": "c"
+        "helper.h": "c",
+        "kernel.h": "c"
     },
 }
