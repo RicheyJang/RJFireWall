@@ -10,6 +10,9 @@
         "ip.h": "c",
         "dependency.h": "c",
         "byteorder.h": "c",
-        "netfilter_ipv4.h": "c"
+        "netfilter_ipv4.h": "c",
+        "rtnetlink.h": "c",
+        "netlink.h": "c",
+        "helper.h": "c"
     },
 }

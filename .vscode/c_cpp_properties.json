@@ -12,7 +12,9 @@
                 "/usr/src/linux-headers-4.15.0-112-generic/include/uapi",
                 "/usr/src/linux-headers-4.15.0-112-generic/include/generated/uapi",
                 "/usr/src/linux-headers-4.15.0-112-generic/ubuntu/include",
-                "/usr/lib/gcc/x86_64-linux-gnu/5/include"
+                "/usr/lib/gcc/x86_64-linux-gnu/5/include",
+                "/usr/include",
+                "/usr/include/x86_64-linux-gnu"
                 // "/usr/src/linux-headers-4.15.0-112/arch/ia64/include",
                 // "/usr/src/linux-headers-4.15.0-112/include/uapi"
             ],
