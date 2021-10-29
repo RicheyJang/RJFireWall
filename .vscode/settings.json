@@ -25,6 +25,7 @@
 		"stddef.h": "c",
 		"stdint.h": "c",
 		"inttypes.h": "c",
-		"hook.h": "c"
+		"hook.h": "c",
+		"stdio.h": "c"
 	},
 }

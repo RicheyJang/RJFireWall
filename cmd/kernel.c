@@ -14,15 +14,24 @@ int showKernelMsg(void *mem,unsigned int len) {
 }
 
 int showOneRule(struct IPRule rule) {
-	char saddr[25],daddr[25],proto[6],action[8],log[5];
+	char saddr[25],daddr[25],sport[11],dport[11],proto[6],action[8],log[5];
 	// ip
 	IPint2IPstr(rule.saddr,rule.smask,saddr);
 	IPint2IPstr(rule.daddr,rule.dmask,daddr);
+	// port
+	if(rule.sport < 0)
+		strcpy(sport, "any");
+	else
+		sprintf(sport, "%d", rule.sport);
+	if(rule.dport < 0)
+		strcpy(dport, "any");
+	else
+		sprintf(dport, "%d", rule.dport);
 	// action
 	if(rule.action == NF_ACCEPT) {
-		sprintf(action, "ACCEPT");
+		sprintf(action, "accept");
 	} else if(rule.action == NF_DROP) {
-		sprintf(action, "DROP");
+		sprintf(action, "drop");
 	} else {
 		sprintf(action, "other");
 	}
@@ -45,8 +54,8 @@ int showOneRule(struct IPRule rule) {
 		sprintf(log, "no");
 	}
 	// print
-	printf("%*s:\t%s\t%s\t%-11d\t%-11d\t%-8s\t%s\t%s\n", MAXRuleNameLen,
-	rule.name, saddr, daddr, rule.sport, rule.dport, proto, action, log);
+	printf("%*s:\t%-18s\t%-18s\t%-11s\t%-11s\t%-8s\t%-6s\t%-3s\n", MAXRuleNameLen,
+	rule.name, saddr, daddr, sport, dport, proto, action, log);
 }
 
 int showRules() {
@@ -70,10 +79,11 @@ int showRules() {
 	// show
 	if(head->arrayLen==0) {
 		printf("No rules now.\n");
+		return 0;
 	}
 	printf("rule num: %u\n", head->arrayLen);
-	printf("%*s:\tsource ip\ttarget ip\tsource port\ttarget port\tprotocol\taction\tlog\n"
-	, MAXRuleNameLen, "name");
+	printf("%*s:\t%-18s\t%-18s\t%-11s\t%-11s\t%-8s\t%-6s\t%-3s\n", MAXRuleNameLen,
+	 "name", "source ip", "target ip", "source port", "target port", "protocol", "action", "log");
 	for(i=0;i<head->arrayLen;i++) {
 		showOneRule(rules[i]);
 	}
