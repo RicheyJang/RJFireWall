@@ -38,24 +38,47 @@ struct IPRule * addIPRuleToChain(char after[], struct IPRule rule) {
 
 // 删除所有名称为name的规则
 int delIPRuleFromChain(char name[]) {
-    struct IPRule *now;
+    struct IPRule *now,*tmp;
     int count = 0;
     write_lock(&ipRuleLock);
     while(ipRuleHead!=NULL && strcmp(ipRuleHead->name,name)==0) {
-        now = ipRuleHead;
+        tmp = ipRuleHead;
         ipRuleHead = ipRuleHead->nx;
-        kfree(now);
+        kfree(tmp);
+        count++;
     }
     for(now=ipRuleHead;now!=NULL && now->nx!=NULL;) {
         if(strcmp(now->nx->name,name)==0) { // 删除下条规则
+            tmp = now->nx;
             now->nx = now->nx->nx;
+            kfree(tmp);
+            count++;
         } else {
             now = now->nx;
         }
     }
     write_unlock(&ipRuleLock);
+    return count;
 }
 
-unsigned int matchIPRules(struct sk_buff *skb) {
-    
+void* formAllIPRules(unsigned int *len) {
+    struct KernelResponseHeader *head;
+    struct IPRule *now;
+    void *mem,*p;
+    unsigned int count;
+    read_lock(&ipRuleLock);
+    for(now=ipRuleHead,count=0;now!=NULL;now=now->nx,count++);
+    *len = sizeof(struct KernelResponseHeader) + sizeof(struct IPRule)*count;
+    mem = kzalloc(*len, GFP_ATOMIC);
+    head = (struct KernelResponseHeader *)mem;
+    head->bodyTp = RSP_IPRules;
+    head->arrayLen = count;
+    for(now=ipRuleHead,p=(mem + sizeof(struct KernelResponseHeader));now!=NULL;now=now->nx,p=p+sizeof(struct IPRule))
+        memcpy(p, now, sizeof(struct IPRule));
+    read_unlock(&ipRuleLock);
+    return mem;
 }
+
+// unsigned int matchIPRules(struct sk_buff *skb) {
+    
+// }

@@ -14,6 +14,10 @@
         "rtnetlink.h": "c",
         "netlink.h": "c",
         "helper.h": "c",
-        "kernel.h": "c"
+        "kernel.h": "c",
+        "netfilter.h": "c",
+        "textsearch.h": "c",
+        "slab.h": "c",
+        "in.h": "c"
     },
 }

@@ -10,4 +10,6 @@
 #define NETLINK_MYFW 17
 #define MAX_PAYLOAD 1024
 
+
+
 int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen);

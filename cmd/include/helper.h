@@ -1,7 +1,9 @@
-#ifndef _NETLINK_HELPER_H
-#define _NETLINK_HELPER_H
+#ifndef _HELPER_H
+#define _HELPER_H
 
-#include "dependency.h"
+#include <linux/types.h>
+#include <linux/in.h>
+#include <linux/netfilter.h>
 
 #define MAXRuleNameLen 11
 
@@ -39,19 +41,5 @@ struct KernelResponseHeader {
     unsigned int bodyTp;
     unsigned int arrayLen;
 };
-
-// ----- netlink 相关 -----
-#include <linux/netlink.h>
-#define NETLINK_MYFW 17
-
-struct sock *netlinkInit(void);
-void netlinkRelease(void);
-int nlSend(unsigned int pid, void *data, unsigned int len);
-
-// ----- 应用交互相关 -------
-int dealAppMessage(unsigned int pid, void *msg, unsigned int len);
-void* formAllIPRules(unsigned int *len);
-struct IPRule * addIPRuleToChain(char after[], struct IPRule rule);
-int delIPRuleFromChain(char name[]);
 
 #endif
