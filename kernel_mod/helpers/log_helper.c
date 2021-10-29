@@ -9,6 +9,7 @@ static DEFINE_RWLOCK(logLock);
 int rollLog(void) {
     struct IPLog *tmp;
     unsigned int count = 0;
+    printk("[fw logs] roll log chain.\n");
     write_lock(&logLock);
     while(logNum > MAX_LOG_LEN) {
         if(logHead == NULL) { // 链表头指针丢失
@@ -48,12 +49,14 @@ int addLog(struct IPLog log) {
         logHead = logTail;
         logNum = 1;
         write_unlock(&logLock);
+        printk("[fw logs] add a log at head.\n");
         return 1;
     }
     logTail->nx = newLog;
     logTail = newLog;
     logNum++;
     write_unlock(&logLock);
+    printk("[fw logs] add a log.\n");
     if(logNum > MAX_LOG_LEN) {
         rollLog();
     }
@@ -91,6 +94,7 @@ void* formAllIPLogs(unsigned int num, unsigned int *len) {
     unsigned int count;
     read_lock(&logLock);
     for(now=logHead,count=0;now!=NULL;now=now->nx,count++); // 计算日志总量
+    printk("[fw logs] form logs count=%d, need num=%d.\n", count, num);
     if(num == 0 || num > count)
         num = count;
     *len = sizeof(struct KernelResponseHeader) + sizeof(struct IPLog) * num; // 申请回包空间

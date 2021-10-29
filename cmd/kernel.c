@@ -121,7 +121,7 @@ int showOneLog(struct IPLog log) {
 	sprintf(tm, "%4d-%02d-%02d %02d:%02d:%02d",
         1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	// print
-	printf("[%s] %-6s %-5s %15s:%-5u->%-15s:%-5u len=%u",
+	printf("[%s] %-6s %-5s %15s:%-5u->%15s:%-5u len=%uB\n",
 		tm, action, proto, saddr, log.sport, daddr, log.dport, log.len);
 }
 
@@ -132,6 +132,7 @@ int showLogs(unsigned int num) {
 	struct APPRequest req;
 	struct KernelResponseHeader *head;
 	// exchange msg
+	req.msg.num = num;
 	req.tp = REQ_GETAllIPLogs;
 	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
 		printf("exchange with kernel failed.\n");
