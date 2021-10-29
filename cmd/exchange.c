@@ -8,7 +8,7 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	// init socket
 	int skfd = socket(PF_NETLINK, SOCK_RAW, NETLINK_MYFW);
 	if (skfd < 0) {
-		printf("[exchangeMsgK] can not create a netlink socket\n");
+		//printf("[exchangeMsgK] can not create a netlink socket\n");
 		return -1;
 	}
 	// bind
@@ -17,7 +17,7 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	local.nl_pid = getpid();
 	local.nl_groups = 0;
 	if (bind(skfd, (struct sockaddr *) &local, sizeof(local)) != 0) {
-		printf("[exchangeMsgK] bind() error\n");
+		//printf("[exchangeMsgK] bind() error\n");
 		close(skfd);
 		return -1;
 	}
@@ -28,7 +28,7 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	// set send msg
 	struct nlmsghdr *message=(struct nlmsghdr *)malloc(NLMSG_SPACE(slen)*sizeof(uint8_t));
 	if(!message) {
-		printf("[exchangeMsgK] malloc fail");
+		//printf("[exchangeMsgK] malloc fail");
 		close(skfd);
 		return -1;
 	}
@@ -41,7 +41,7 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	memcpy(NLMSG_DATA(message), smsg, slen);
 	// send msg
 	if (!sendto(skfd, message, message->nlmsg_len, 0, (struct sockaddr *) &kpeer, sizeof(kpeer))) {
-		printf("[exchangeMsgK] sendto fail");
+		//printf("[exchangeMsgK] sendto fail");
 		close(skfd);
 		free(message);
 		return -1;
@@ -49,13 +49,13 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	// recv msg
 	struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD)*sizeof(uint8_t));
 	if (!nlh) {
-		printf("[exchangeMsgK] nlh malloc fail");
+		//printf("[exchangeMsgK] nlh malloc fail");
 		close(skfd);
 		free(message);
 		return -1;
 	}
 	if (!recvfrom(skfd, nlh, NLMSG_SPACE(MAX_PAYLOAD), 0, (struct sockaddr *) &kpeer, (socklen_t *)&kpeerlen)) {
-		printf("[exchangeMsgK] recvfrom fail");
+		//printf("[exchangeMsgK] recvfrom fail");
 		close(skfd);
 		free(message);
 		free(nlh);
@@ -64,7 +64,7 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	*dlen = nlh->nlmsg_len - NLMSG_SPACE(0);
 	*dmsg = malloc(*dlen);
 	if(!(*dmsg)) {
-		printf("[exchangeMsgK] dmsg malloc fail");
+		//printf("[exchangeMsgK] dmsg malloc fail");
 		close(skfd);
 		free(message);
 		free(nlh);

@@ -7,9 +7,13 @@ static DEFINE_RWLOCK(ipRuleLock);
 // 在名称为after的规则后新增一条规则，after为空时则在首部新增一条规则
 struct IPRule * addIPRuleToChain(char after[], struct IPRule rule) {
     struct IPRule *newRule,*now;
-    newRule = (struct IPRule *) kzalloc(sizeof(struct IPRule), GFP_ATOMIC);
+    newRule = (struct IPRule *) kzalloc(sizeof(struct IPRule), GFP_KERNEL);
+    if(newRule == NULL) {
+        printk(KERN_WARNING "[fw rules] kzalloc fail.\n");
+        return NULL;
+    }
     memcpy(newRule, &rule, sizeof(struct IPRule));
-
+    // 新增规则至规则链表
     write_lock(&ipRuleLock);
     if(ipRuleHead == NULL) {
         ipRuleHead = newRule;
@@ -72,6 +76,11 @@ void* formAllIPRules(unsigned int *len) {
     for(now=ipRuleHead,count=0;now!=NULL;now=now->nx,count++);
     *len = sizeof(struct KernelResponseHeader) + sizeof(struct IPRule)*count;
     mem = kzalloc(*len, GFP_ATOMIC);
+    if(mem == NULL) {
+        printk(KERN_WARNING "[fw rules] kzalloc fail.\n");
+        read_unlock(&ipRuleLock);
+        return NULL;
+    }
     head = (struct KernelResponseHeader *)mem;
     head->bodyTp = RSP_IPRules;
     head->arrayLen = count;

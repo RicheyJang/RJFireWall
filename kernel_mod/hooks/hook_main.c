@@ -3,16 +3,18 @@
 
 const unsigned int DEFAULT_ACTION = NF_ACCEPT;
 
-unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state *state)
-{
+unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state *state) {
+    struct iphdr *header = ip_hdr(skb);
     // match with rule chain
     int isMatch = 0;
     struct IPRule rule = matchIPRules(skb, &isMatch);
-    if(isMatch) { // match a rule
+    if(isMatch) { // 匹配到了一条规则
         printk("[fw netfilter]patch rule %s.\n", rule.name);
-        if(rule.action == NF_ACCEPT)
-            return NF_ACCEPT;
-        return NF_DROP;
+        unsigned int action = (rule.action==NF_ACCEPT) ? NF_ACCEPT : NF_DROP;
+        if(rule.log) { // 记录日志
+            addLogBySKB(action, skb);
+        }
+        return action;
     }
     // default
     return DEFAULT_ACTION;

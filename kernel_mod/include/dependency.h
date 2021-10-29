@@ -1,6 +1,7 @@
 #ifndef _DEPENDENCY_H
 #define _DEPENDENCY_H
 
+#include <time.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>

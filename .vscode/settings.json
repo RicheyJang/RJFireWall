@@ -26,6 +26,7 @@
 		"stdint.h": "c",
 		"inttypes.h": "c",
 		"hook.h": "c",
-		"stdio.h": "c"
+		"stdio.h": "c",
+		"time.h": "c"
 	},
 }

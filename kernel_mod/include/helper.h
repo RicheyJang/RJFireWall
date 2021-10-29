@@ -10,10 +10,12 @@
 #define REQ_ADDIPRule 2
 #define REQ_DELIPRule 3
 #define REQ_SETAction 4 
+#define REQ_GETAllIPLogs 5
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
 #define RSP_IPRules 12
+#define RSP_IPLogs 13
 
 struct IPRule {
     char name[MAXRuleNameLen+1];
@@ -27,6 +29,16 @@ struct IPRule {
     unsigned int action;
     unsigned int log;
     struct IPRule* nx;
+};
+
+struct IPLog {
+    time_t tm;
+    unsigned int saddr;
+    unsigned int daddr;
+    unsigned short sport;
+    unsigned short dport;
+    unsigned int action;
+    struct IPLog* nx;
 };
 
 struct APPRequest {
@@ -56,8 +68,13 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len);
 void* formAllIPRules(unsigned int *len);
 struct IPRule * addIPRuleToChain(char after[], struct IPRule rule);
 int delIPRuleFromChain(char name[]);
+void* formAllIPLogs(unsigned int *len);
 
 // ----- netfilter相关 -----
+#define MAX_LOG_LEN 200
+
 struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch);
+int addLog(struct IPLog log);
+int addLogBySKB(unsigned int action, struct sk_buff *skb);
 
 #endif
