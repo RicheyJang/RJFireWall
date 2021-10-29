@@ -96,7 +96,9 @@ int main(int argc, char *argv[]) {
 	} else if(strcmp(argv[1], "nat")==0 || argv[1][0] == 'n') {
 
 	} else if(strcmp(argv[1], "log")==0 || argv[1][0] == 'l') {
-
+		unsigned int num = 0;
+		sscanf(argv[2], "%u", &num);
+		showLogs(num);
 	} else 
 		wrongCommand();
 }

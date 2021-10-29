@@ -32,11 +32,13 @@ struct IPRule {
 };
 
 struct IPLog {
-    time_t tm;
+    long tm;
     unsigned int saddr;
     unsigned int daddr;
     unsigned short sport;
     unsigned short dport;
+    u_int8_t protocol;
+    unsigned int len;
     unsigned int action;
     struct IPLog* nx;
 };
@@ -47,6 +49,7 @@ struct APPRequest {
     union {
         struct IPRule ipRule;
         unsigned int defaultAction;
+        unsigned int num;
     } msg;
 };
 
@@ -68,7 +71,7 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len);
 void* formAllIPRules(unsigned int *len);
 struct IPRule * addIPRuleToChain(char after[], struct IPRule rule);
 int delIPRuleFromChain(char name[]);
-void* formAllIPLogs(unsigned int *len);
+void* formAllIPLogs(unsigned int num, unsigned int *len);
 
 // ----- netfilter相关 -----
 #define MAX_LOG_LEN 200

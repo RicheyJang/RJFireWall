@@ -30,7 +30,7 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
     switch (req->tp)
     {
     case REQ_GETAllIPLogs:
-        mem = formAllIPLogs(&rspLen);
+        mem = formAllIPLogs(req->msg.num, &rspLen);
         if(mem == NULL) {
             printk(KERN_WARNING "[fw k2app] formAllIPLogs fail.\n");
             sendMsgToApp(pid, "form all logs fail.");

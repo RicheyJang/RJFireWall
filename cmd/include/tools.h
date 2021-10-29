@@ -12,7 +12,7 @@ int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask){
 			return -1;
 		}
 	}
-	// 获取掩码
+	// 鑾峰彇鎺╃爜
 	for(i = 0; i < strlen(ipStr); i++){
         if(p != -1){
             len *= 10;
@@ -29,7 +29,7 @@ int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask){
             r_mask = 0xFFFFFFFF << (32 - len);
     }
     else r_mask = 0xFFFFFFFF;
-	// 获取IP
+	// 鑾峰彇IP
     for(i = 0; i < (p>=0 ? p : strlen(ipStr)); i++){
         if(ipStr[i] == '.'){
             r_ip = r_ip | (tmp << (8 * (3 - count)));
@@ -61,6 +61,18 @@ int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr) {
         ips[i] = ((ip >> ((3-i)*8)) & 0xFFU);
     }
 	sprintf(ipStr, "%u.%u.%u.%u/%u", ips[0], ips[1], ips[2], ips[3], maskNum);
+	return 0;
+}
+
+int IPint2IPstrNoMask(unsigned int ip, char *ipStr) {
+    unsigned int i,ips[4];
+    if(ipStr == NULL) {
+        return -1;
+    }
+    for(i=0;i<4;i++) {
+        ips[i] = ((ip >> ((3-i)*8)) & 0xFFU);
+    }
+	sprintf(ipStr, "%u.%u.%u.%u", ips[0], ips[1], ips[2], ips[3]);
 	return 0;
 }
 

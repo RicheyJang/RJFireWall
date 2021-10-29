@@ -6,7 +6,7 @@ static unsigned int logNum = 0;
 static DEFINE_RWLOCK(logLock);
 
 // 释放首部多余的日志节点 整理链表
-int rollLog() {
+int rollLog(void) {
     struct IPLog *tmp;
     unsigned int count = 0;
     write_lock(&logLock);
@@ -33,7 +33,7 @@ int rollLog() {
 
 // 新增日志记录
 int addLog(struct IPLog log) {
-    struct IPLog *newLog,*now;
+    struct IPLog *newLog;
     newLog = (struct IPLog *) kzalloc(sizeof(struct IPLog), GFP_KERNEL);
     if(newLog == NULL) {
         printk(KERN_WARNING "[fw logs] kzalloc fail.\n");
@@ -64,37 +64,54 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb) {
     struct IPLog log;
     unsigned short sport,dport;
 	struct iphdr *header;
-    log.tm = time(NULL);
+    struct timeval now = {
+        .tv_sec = 0,
+        .tv_usec = 0
+    };
+    do_gettimeofday(&now);
+    log.tm = now.tv_sec;
     header = ip_hdr(skb);
 	getPort(skb,header,&sport,&dport);
     log.saddr = ntohl(header->saddr);
     log.daddr = ntohl(header->daddr);
     log.sport = sport;
     log.dport = dport;
+    log.len = header->tot_len - (header->ihl * 4);
+    log.protocol = header->protocol;
     log.action = action;
-    addLog(log);
+    return addLog(log);
 }
 
 // 将所有过滤日志形成Netlink回包
-void* formAllIPLogs(unsigned int *len) {
+void* formAllIPLogs(unsigned int num, unsigned int *len) {
     struct KernelResponseHeader *head;
     struct IPLog *now;
     void *mem,*p;
     unsigned int count;
     read_lock(&logLock);
-    for(now=logHead,count=0;now!=NULL;now=now->nx,count++);
-    *len = sizeof(struct KernelResponseHeader) + sizeof(struct IPLog) * count;
+    for(now=logHead,count=0;now!=NULL;now=now->nx,count++); // 计算日志总量
+    if(num == 0 || num > count)
+        num = count;
+    *len = sizeof(struct KernelResponseHeader) + sizeof(struct IPLog) * num; // 申请回包空间
     mem = kzalloc(*len, GFP_ATOMIC);
     if(mem == NULL) {
         printk(KERN_WARNING "[fw logs] formAllIPLogs kzalloc fail.\n");
         read_unlock(&logLock);
         return NULL;
     }
+    // 构建回包
     head = (struct KernelResponseHeader *)mem;
     head->bodyTp = RSP_IPLogs;
-    head->arrayLen = count;
-    for(now=logHead,p=(mem + sizeof(struct KernelResponseHeader));now!=NULL;now=now->nx,p=p+sizeof(struct IPLog))
+    head->arrayLen = num;
+    p=(mem + sizeof(struct KernelResponseHeader));
+    for(now=logHead;now!=NULL;now=now->nx) {
+        if(count > num) { // 只取最后num个日志
+            count--;
+            continue;
+        }
         memcpy(p, now, sizeof(struct IPLog));
+        p=p+sizeof(struct IPLog);
+    }
     read_unlock(&logLock);
     return mem;
 }

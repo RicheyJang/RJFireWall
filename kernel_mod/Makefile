@@ -1,6 +1,6 @@
 MODULE_NAME	= myfw
 
-SRC := helpers/netlink_helper.c helpers/rule_helper.c helpers/app_helper.c hooks/hook_main.c mod_main.c
+SRC := tools.c helpers/netlink_helper.c helpers/log_helper.c helpers/rule_helper.c helpers/app_helper.c hooks/hook_main.c mod_main.c
 
 KDIR := /lib/modules/$(shell uname -r)/build
 

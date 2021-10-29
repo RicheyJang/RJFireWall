@@ -90,6 +90,71 @@ int showRules() {
 	return 0;
 }
 
+int showOneLog(struct IPLog log) {
+	struct tm * timeinfo;
+	char saddr[25],daddr[25],proto[6],action[8],tm[21];
+	// ip
+	IPint2IPstrNoMask(log.saddr,saddr);
+	IPint2IPstrNoMask(log.daddr,daddr);
+	// action
+	if(log.action == NF_ACCEPT) {
+		sprintf(action, "accept");
+	} else if(log.action == NF_DROP) {
+		sprintf(action, "drop");
+	} else {
+		sprintf(action, "other");
+	}
+	// protocol
+	if(log.protocol == IPPROTO_TCP) {
+		sprintf(proto, "TCP");
+	} else if(log.protocol == IPPROTO_UDP) {
+		sprintf(proto, "UDP");
+	} else if(log.protocol == IPPROTO_ICMP) {
+		sprintf(proto, "ICMP");
+	} else if(log.protocol == IPPROTO_IP) {
+		sprintf(proto, "any");
+	} else {
+		sprintf(proto, "other");
+	}
+	// time
+	timeinfo = localtime(&log.tm);
+	sprintf(tm, "%4d-%02d-%02d %02d:%02d:%02d",
+        1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	// print
+	printf("[%s] %-6s %-5s %15s:%-5u->%-15s:%-5u len=%u",
+		tm, action, proto, saddr, log.sport, daddr, log.dport, log.len);
+}
+
+int showLogs(unsigned int num) {
+	void *mem;
+	unsigned int rspLen,i;
+	struct IPLog *logs;
+	struct APPRequest req;
+	struct KernelResponseHeader *head;
+	// exchange msg
+	req.tp = REQ_GETAllIPLogs;
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	head = (struct KernelResponseHeader *)mem;
+	if(head->bodyTp!=RSP_IPLogs || rspLen<sizeof(struct KernelResponseHeader)) {
+		printf("msg format error.\n");
+		return -1;
+	}
+	logs = (struct IPLog *)(mem+sizeof(struct KernelResponseHeader));
+	// show
+	if(head->arrayLen == 0) {
+		printf("No logs now.\n");
+		return 0;
+	}
+	printf("log num: %u\n", head->arrayLen);
+	for(i=0;i<head->arrayLen;i++) {
+		showOneLog(logs[i]);
+	}
+	return 0;
+}
+
 int addRule(char *after,char *name,char *sip,char *dip,int sport,int dport,unsigned int proto,unsigned int log,unsigned int action) {
 	struct APPRequest req;
 	void *mem;
