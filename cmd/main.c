@@ -61,10 +61,10 @@ void wrongCommand() {
 
 int main(int argc, char *argv[]) {
 	if(argc<3) {
+		addRule("","rj","192.168.80.138","47.100.10.21",-1,-1,IPPROTO_ICMP,1,NF_DROP);
 		wrongCommand();
 		return 0;
 	}
-	//addRule("","1","127.0.0.1","127.0.0.1",-1,-1,IPPROTO_TCP,0,NF_ACCEPT);
 	// 过滤规则相关
 	if(strcmp(argv[1], "rule")==0 || argv[1][0] == 'r') {
 		if(strcmp(argv[2], "ls")==0 || strcmp(argv[2], "list")==0) {

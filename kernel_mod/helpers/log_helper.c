@@ -39,8 +39,8 @@ int addLog(struct IPLog log) {
         printk(KERN_WARNING "[fw logs] kzalloc fail.\n");
         return 0;
     }
-    newLog->nx = NULL;
     memcpy(newLog, &log, sizeof(struct IPLog));
+    newLog->nx = NULL;
     // 新增日志至日志链表
     write_lock(&logLock);
     if(logTail == NULL) { // 日志链表为空
@@ -79,6 +79,7 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb) {
     log.len = header->tot_len - (header->ihl * 4);
     log.protocol = header->protocol;
     log.action = action;
+    log.nx = NULL;
     return addLog(log);
 }
 
