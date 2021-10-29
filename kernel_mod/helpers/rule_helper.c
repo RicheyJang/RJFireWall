@@ -62,6 +62,7 @@ int delIPRuleFromChain(char name[]) {
     return count;
 }
 
+// 将所有规则形成Netlink回包
 void* formAllIPRules(unsigned int *len) {
     struct KernelResponseHeader *head;
     struct IPRule *now;
@@ -80,6 +81,7 @@ void* formAllIPRules(unsigned int *len) {
     return mem;
 }
 
+// 进行过滤规则匹配，isMatch存储是否匹配到规则
 struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch) {
     struct IPRule *now,ret;
 	unsigned short sport,dport;
@@ -91,13 +93,13 @@ struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch) {
 		if( isIPMatch(ntohl(header->saddr),now->saddr,now->smask) &&
 			isIPMatch(ntohl(header->daddr),now->daddr,now->dmask) &&
 			(now->sport < 0 || sport == now->sport) &&
-			(now->sport < 0 || sport == now->sport) &&
+			(now->dport < 0 || dport == now->dport) &&
 			(now->protocol == IPPROTO_IP || now->protocol == header->protocol)) {
 				ret = *now;
 				*isMatch = 1;
 				break;
 		}
 	}
-	read_lock(&ipRuleLock);
+	read_unlock(&ipRuleLock);
 	return ret;
 }

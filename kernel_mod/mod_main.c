@@ -18,16 +18,16 @@ static struct nf_hook_ops nfop_out={
 
 static int mod_init(void){
 	printk("my firewall module loaded.\n");
-	// nf_register_net_hook(&init_net,&nfop_in);
-	// nf_register_net_hook(&init_net,&nfop_out);
+	nf_register_net_hook(&init_net,&nfop_in);
+	nf_register_net_hook(&init_net,&nfop_out);
 	netlinkInit();
 	return 0;
 }
 
 static void mod_exit(void){
 	printk("my firewall module exit.\n");
-	// nf_unregister_net_hook(&init_net,&nfop_in);
-	// nf_unregister_net_hook(&init_net,&nfop_out);
+	nf_unregister_net_hook(&init_net,&nfop_in);
+	nf_unregister_net_hook(&init_net,&nfop_out);
 	netlinkRelease();
 }
 

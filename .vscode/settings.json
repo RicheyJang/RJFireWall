@@ -21,6 +21,10 @@
 		"slab.h": "c",
 		"in.h": "c",
 		"exchange_msg.h": "c",
-		"tools.h": "c"
+		"tools.h": "c",
+		"stddef.h": "c",
+		"stdint.h": "c",
+		"inttypes.h": "c",
+		"hook.h": "c"
 	},
 }

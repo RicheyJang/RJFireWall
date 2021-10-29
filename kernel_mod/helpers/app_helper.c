@@ -1,5 +1,7 @@
 #include "helper.h"
 
+extern unsigned int DEFAULT_ACTION;
+
 int sendMsgToApp(unsigned int pid, const char *msg) {
     void* mem;
     unsigned int rspLen;
@@ -42,8 +44,20 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
         rspH = (struct KernelResponseHeader *)kzalloc(rspLen, GFP_KERNEL);
         rspH->bodyTp = RSP_Only_Head;
         rspH->arrayLen = delIPRuleFromChain(req->ruleName);
+        printk("[fw k2app] success del %d rules.\n", rspH->arrayLen);
         nlSend(pid, rspH, rspLen);
         kfree(rspH);
+        break;
+    case REQ_SETAction:
+        if(req->msg.defaultAction == NF_ACCEPT) {
+            DEFAULT_ACTION = NF_ACCEPT;
+            rspLen = sendMsgToApp(pid, "Set default action to ACCEPT.");
+            printk("[fw k2app] Set default action to NF_ACCEPT.\n");
+        } else {
+            DEFAULT_ACTION = NF_DROP;
+            rspLen = sendMsgToApp(pid, "Set default action to DROP.");
+            printk("[fw k2app] Set default action to NF_DROP.\n");
+        }
         break;
     default:
         rspLen = sendMsgToApp(pid, "No such req.");
