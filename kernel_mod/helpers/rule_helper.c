@@ -1,3 +1,4 @@
+#include "tools.h"
 #include "helper.h"
 
 static struct IPRule *ipRuleHead = NULL;
@@ -79,6 +80,24 @@ void* formAllIPRules(unsigned int *len) {
     return mem;
 }
 
-// unsigned int matchIPRules(struct sk_buff *skb) {
-    
-// }
+struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch) {
+    struct IPRule *now,ret;
+	unsigned short sport,dport;
+	struct iphdr *header = ip_hdr(skb);
+	*isMatch = 0;
+	getPort(skb,header,&sport,&dport);
+	read_lock(&ipRuleLock);
+	for(now=ipRuleHead;now!=NULL;now=now->nx) {
+		if( isIPMatch(ntohl(header->saddr),now->saddr,now->smask) &&
+			isIPMatch(ntohl(header->daddr),now->daddr,now->dmask) &&
+			(now->sport < 0 || sport == now->sport) &&
+			(now->sport < 0 || sport == now->sport) &&
+			(now->protocol == IPPROTO_IP || now->protocol == header->protocol)) {
+				ret = *now;
+				*isMatch = 1;
+				break;
+		}
+	}
+	read_lock(&ipRuleLock);
+	return ret;
+}

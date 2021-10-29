@@ -28,6 +28,10 @@ void getPort(struct sk_buff *skb, struct iphdr *hdr, unsigned short *src_port, u
 	}
 }
 
+bool isIPMatch(unsigned int ipl, unsigned int ipr, unsigned int mask) {
+	return (ipl & mask) == (ipr & mask);
+}
+
 //--------- 以下为临时工具函数 -----------------
 void showIPk(const char *pre, unsigned long ip) {
     printk("%s %lu.%lu.%lu.%lu\n", pre, (ip>>24)&0xff, (ip>>16)&0xff, (ip>>8)&0xff, (ip>>0)&0xff);
