@@ -1,45 +1,6 @@
 #include "exchange_msg.h"
 #include "helper.h"
-
-int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask){
-	// init
-    int p = -1, count = 0;
-    unsigned int len = 0, tmp = 0, r_mask = 0, r_ip = 0,i;
-	// 获取掩码
-    for(i = 0; i < strlen(ipStr); i++){
-        if(p != -1){
-            len *= 10;
-            len += ipStr[i] - '0';
-        }
-        else if(ipStr[i] == '/')
-            p = i;
-    }
-	if(len > 32 || (p>=0 && p<7)) {
-		return -1;
-	}
-    if(p != -1){
-        if(len)
-            r_mask = 0xFFFFFFFF << (32 - len);
-    }
-    else r_mask = 0xFFFFFFFF;
-	// 获取IP
-    for(i = 0; i < (p>=0 ? p : strlen(ipStr)); i++){
-        if(ipStr[i] == '.'){
-            r_ip = r_ip | (tmp << (8 * (3 - count)));
-            tmp = 0;
-            count++;
-            continue;
-        }
-        tmp *= 10;
-        tmp += ipStr[i] - '0';
-		if(tmp>256 || count>3)
-			return -2;
-    }
-    r_ip = r_ip | tmp;
-	*ip = r_ip;
-	*mask = r_mask;
-    return 0;
-}
+#include "tools.h"
 
 int showKernelMsg(void *mem,unsigned int len) {
 	struct KernelResponseHeader *head;
@@ -50,6 +11,42 @@ int showKernelMsg(void *mem,unsigned int len) {
 	msg = (char *)(mem + sizeof(struct KernelResponseHeader));
 	printf("From kernel: %s\n", msg);
 	return 0;
+}
+
+int showOneRule(struct IPRule rule) {
+	char saddr[25],daddr[25],proto[6],action[8],log[5];
+	// ip
+	IPint2IPstr(rule.saddr,rule.smask,saddr);
+	IPint2IPstr(rule.daddr,rule.dmask,daddr);
+	// action
+	if(rule.action == NF_ACCEPT) {
+		sprintf(action, "ACCEPT");
+	} else if(rule.action == NF_DROP) {
+		sprintf(action, "DROP");
+	} else {
+		sprintf(action, "other");
+	}
+	// protocol
+	if(rule.protocol == IPPROTO_TCP) {
+		sprintf(proto, "TCP");
+	} else if(rule.protocol == IPPROTO_UDP) {
+		sprintf(proto, "UDP");
+	} else if(rule.protocol == IPPROTO_ICMP) {
+		sprintf(proto, "ICMP");
+	} else if(rule.protocol == IPPROTO_IP) {
+		sprintf(proto, "any");
+	} else {
+		sprintf(proto, "other");
+	}
+	// log
+	if(rule.log) {
+		sprintf(log, "yes");
+	} else {
+		sprintf(log, "no");
+	}
+	// print
+	printf("%*s:\t%s\t%s\t%-11d\t%-11d\t%-8s\t%s\t%s\n", MAXRuleNameLen,
+	rule.name, saddr, daddr, rule.sport, rule.dport, proto, action, log);
 }
 
 int showRules() {
@@ -74,8 +71,11 @@ int showRules() {
 	if(head->arrayLen==0) {
 		printf("No rules now.\n");
 	}
+	printf("rule num: %u\n", head->arrayLen);
+	printf("%*s:\tsource ip\ttarget ip\tsource port\ttarget port\tprotocol\taction\tlog\n"
+	, MAXRuleNameLen, "name");
 	for(i=0;i<head->arrayLen;i++) {
-		printf("%s: %d %d %d\n", rules[i].name, rules[i].action, rules[i].log, rules[i].protocol);
+		showOneRule(rules[i]);
 	}
 	return 0;
 }
@@ -117,20 +117,110 @@ int addRule(char *after,char *name,char *sip,char *dip,int sport,int dport,unsig
 }
 
 int delRule(char *name) {
+	void *mem;
+	unsigned int rspLen;
+	struct APPRequest req;
+	struct KernelResponseHeader *head;
+	// form request
+	req.tp = REQ_DELIPRule;
+	strncpy(req.ruleName, name, MAXRuleNameLen);
+	// exchange
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	// print result
+	head = (struct KernelResponseHeader *)mem;
+	printf("del %d rules.\n", head->arrayLen);
+}
+
+// 新增过滤规则时的用户交互
+void cmdAddRule() {
+	char after[MAXRuleNameLen+1],name[MAXRuleNameLen+1],saddr[25],daddr[25],protoS[6];
+	int sport,dport;
+	unsigned int action = NF_DROP, log = 0, proto, i;
+	printf("add rule after [enter for adding at head]: ");
+	for(i=0;;i++) {
+		if(i>MAXRuleNameLen) {
+			printf("name too long.\n");
+			return ;
+		}
+		after[i] = getchar();
+		if(after[i] == '\n' || after[i] == '\r') {
+			after[i] = '\0';
+			break;
+		}
+	}
+	printf("rule name [max len=%d]: ", MAXRuleNameLen);
+	scanf("%s",name);
+	if(strlen(name)==0 || strlen(name)>MAXRuleNameLen) {
+		printf("name too long or too short.\n");
+		return ;
+	}
+	printf("source ip and mask: ");
+	scanf("%s",saddr);
+	printf("source port [input -1 for any]: ");
+	scanf("%d",&sport);
+	printf("target ip and mask: ");
+	scanf("%s",daddr);
+	printf("target port [input -1 for any]: ");
+	scanf("%d",&dport);
+	printf("protocol [TCP/UDP/ICMP/any]: ");
+	scanf("%s",protoS);
+	if(strcmp(protoS,"TCP")==0)
+		proto = IPPROTO_TCP;
+	else if(strcmp(protoS,"UDP")==0)
+		proto = IPPROTO_UDP;
+	else if(strcmp(protoS,"ICMP")==0)
+		proto = IPPROTO_ICMP;
+	else if(strcmp(protoS,"any")==0)
+		proto = IPPROTO_IP;
+	else {
+		printf("This protocol is not supported.\n");
+		return ;
+	}
+	printf("action [1 for accept,0 for drop]: ");
+	scanf("%d",&action);
+	printf("is log [1 for yes,0 for no]: ");
+	scanf("%u",&log);
+	printf("result:\n");
+	addRule(after,name,saddr,daddr,sport,dport,proto,log,action);
+}
+
+void wrongCommand() {
+	printf("wrong command.\n");
+	printf("uapp <command> <sub-command> [option]\n");
+	printf("command: rule <add | del | ls>\n");
 }
 
 int main(int argc, char *argv[]) {
 	if(argc<3) {
-		printf("wrong command.\n");
+		wrongCommand();
 		return 0;
 	}
-	addRule("","1","127.0.0.1","127.0.0.1",-1,-1,IPPROTO_TCP,0,NF_ACCEPT);
+	//addRule("","1","127.0.0.1","127.0.0.1",-1,-1,IPPROTO_TCP,0,NF_ACCEPT);
+	// 过滤规则相关
 	if(strcmp(argv[1], "rule")==0 || argv[1][0] == 'r') {
-		if(strcmp(argv[2], "ls")==0) {
+		if(strcmp(argv[2], "ls")==0 || strcmp(argv[2], "list")==0) {
+		// 列出所有过滤规则
 			showRules();
-		}
-		else if(strcmp(argv[2], "add")==0) {
-			
-		}
-	}
+		} else if(strcmp(argv[2], "del")==0) {
+		// 删除过滤规则
+			if(argc < 4)
+				printf("please point rule name in option.\n");
+			else if(strlen(argv[3])>MAXRuleNameLen)
+				printf("rule name too long!");
+			else
+				delRule(argv[3]);
+		} else if(strcmp(argv[2], "add")==0) {
+		// 添加过滤规则
+			cmdAddRule();
+		} else 
+			wrongCommand();
+	} else if(strcmp(argv[1], "nat")==0 || argv[1][0] == 'n') {
+
+	} else if(strcmp(argv[1], "log")==0 || argv[1][0] == 'l') {
+
+	} else 
+		wrongCommand();
 }

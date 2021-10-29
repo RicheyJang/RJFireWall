@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.asm": "asm-intel-x86-generic",
         "module.h": "c",
         "percpu.h": "c",
         "skbuff.h": "c",
@@ -18,6 +19,7 @@
         "netfilter.h": "c",
         "textsearch.h": "c",
         "slab.h": "c",
-        "in.h": "c"
+        "in.h": "c",
+        "exchange_msg.h": "c"
     },
 }

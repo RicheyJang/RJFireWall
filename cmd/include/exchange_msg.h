@@ -1,3 +1,6 @@
+#ifndef _EXCHANGE_MSG_H
+#define _EXCHANGE_MSG_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -13,3 +16,5 @@
 
 
 int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen);
+
+#endif

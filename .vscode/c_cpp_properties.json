@@ -15,8 +15,6 @@
                 "/usr/lib/gcc/x86_64-linux-gnu/5/include",
                 "/usr/include",
                 "/usr/include/x86_64-linux-gnu"
-                // "/usr/src/linux-headers-4.15.0-112/arch/ia64/include",
-                // "/usr/src/linux-headers-4.15.0-112/include/uapi"
             ],
             "defines": [
                 "__KERNEL__",
