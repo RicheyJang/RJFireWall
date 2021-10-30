@@ -9,5 +9,9 @@ $(TARGET):$(OBJS)
 	rm -rf $(SRCS:.c=.o)
 %.o:%.c
 	$(CC) $(INCLUDES) -o $@ -c $<
+
+install:
+	mv $(TARGET) ..
+
 clean:
 	rm -rf $(basename $(TARGET)) $(SRCS:.c=.o)
