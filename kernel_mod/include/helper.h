@@ -81,7 +81,21 @@ int addLog(struct IPLog log);
 int addLogBySKB(unsigned int action, struct sk_buff *skb);
 
 // ----- 连接池相关 --------
+#include <linux/rbtree.h>
+
+#define CONN_EXPIRES 5
 #define CONN_ROLL_INTERVAL 5
+#define CONN_MAX_SYM_NUM 3
+
+typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
+
+typedef struct connNode {
+    struct rb_node node;
+    conn_key_t key;
+    unsigned long expires; // 超时时间
+}connNode;
+
+#define timeFromNow(plus) (jiffies + ((plus) * HZ))
 
 void conn_init(void);
 void conn_exit(void);

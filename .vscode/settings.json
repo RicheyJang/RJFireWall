@@ -27,6 +27,7 @@
 		"inttypes.h": "c",
 		"hook.h": "c",
 		"stdio.h": "c",
-		"time.h": "c"
+		"time.h": "c",
+		"rbtree.h": "c"
 	},
 }
