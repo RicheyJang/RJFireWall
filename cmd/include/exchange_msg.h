@@ -11,7 +11,7 @@
 
 #define uint8_t unsigned char
 #define NETLINK_MYFW 17
-#define MAX_PAYLOAD 1024
+#define MAX_PAYLOAD (1024 * 256)
 
 
 
