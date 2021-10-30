@@ -1,3 +1,4 @@
+#include "tools.h"
 #include "helper.h"
 
 // --- 红黑树相关 ---
@@ -101,6 +102,13 @@ int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned s
 		return 1;
 	}
 	return 0;
+}
+
+int hasConnBySKB(struct sk_buff *skb) {
+	unsigned short sport,dport;
+	struct iphdr *header = ip_hdr(skb);
+	getPort(skb,header,&sport,&dport);
+	return hasConn(ntohl(header->saddr),ntohl(header->daddr),sport,dport);
 }
 
 // 新建连接

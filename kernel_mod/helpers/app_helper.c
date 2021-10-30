@@ -21,6 +21,18 @@ int sendMsgToApp(unsigned int pid, const char *msg) {
     return rspLen;
 }
 
+void dealWithSetAction(unsigned int action) {
+    if(action != NF_ACCEPT) {
+        struct IPRule rule = {
+            .smask = 0,
+            .dmask = 0,
+            .sport = -1,
+            .dport = -1
+        }; // 清除全部连接
+        eraseConnRelated(rule);
+    }
+}
+
 int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
     struct APPRequest *req;
     struct KernelResponseHeader *rspH;
@@ -82,6 +94,7 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
             rspLen = sendMsgToApp(pid, "Set default action to DROP.");
             printk("[fw k2app] Set default action to NF_DROP.\n");
         }
+        dealWithSetAction(DEFAULT_ACTION);
         break;
     default:
         rspLen = sendMsgToApp(pid, "No such req.");

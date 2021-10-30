@@ -15,6 +15,8 @@ struct IPRule * addIPRuleToChain(char after[], struct IPRule rule) {
     memcpy(newRule, &rule, sizeof(struct IPRule));
     // 新增规则至规则链表
     write_lock(&ipRuleLock);
+    if(rule.action != NF_ACCEPT) 
+        eraseConnRelated(rule); // 消除新增规则的影响
     if(ipRuleHead == NULL) {
         ipRuleHead = newRule;
         ipRuleHead->nx = NULL;
@@ -49,6 +51,7 @@ int delIPRuleFromChain(char name[]) {
     while(ipRuleHead!=NULL && strcmp(ipRuleHead->name,name)==0) {
         tmp = ipRuleHead;
         ipRuleHead = ipRuleHead->nx;
+        eraseConnRelated(*tmp); // 消除删除规则的影响
         kfree(tmp);
         count++;
     }
@@ -56,6 +59,7 @@ int delIPRuleFromChain(char name[]) {
         if(strcmp(now->nx->name,name)==0) { // 删除下条规则
             tmp = now->nx;
             now->nx = now->nx->nx;
+            eraseConnRelated(*tmp); // 消除删除规则的影响
             kfree(tmp);
             count++;
         } else {

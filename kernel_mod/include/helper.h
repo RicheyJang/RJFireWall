@@ -99,5 +99,8 @@ typedef struct connNode {
 
 void conn_init(void);
 void conn_exit(void);
+int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
+int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
+int eraseConnRelated(struct IPRule rule);
 
 #endif
