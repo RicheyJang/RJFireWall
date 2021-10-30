@@ -20,7 +20,8 @@ static int mod_init(void){
 	printk("my firewall module loaded.\n");
 	nf_register_net_hook(&init_net,&nfop_in);
 	nf_register_net_hook(&init_net,&nfop_out);
-	netlinkInit();
+	netlink_init();
+	conn_init();
 	return 0;
 }
 
@@ -28,7 +29,8 @@ static void mod_exit(void){
 	printk("my firewall module exit.\n");
 	nf_unregister_net_hook(&init_net,&nfop_in);
 	nf_unregister_net_hook(&init_net,&nfop_out);
-	netlinkRelease();
+	netlink_release();
+	conn_exit();
 }
 
 MODULE_LICENSE("GPL");

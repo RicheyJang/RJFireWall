@@ -11,7 +11,7 @@ $(TARGET):$(OBJS)
 	$(CC) $(INCLUDES) -o $@ -c $<
 
 install:
-	mv $(TARGET) ..
+	cp $(TARGET) ..
 
 clean:
 	rm -rf $(basename $(TARGET)) $(SRCS:.c=.o)

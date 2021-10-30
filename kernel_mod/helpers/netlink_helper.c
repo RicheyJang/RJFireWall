@@ -54,7 +54,7 @@ struct netlink_kernel_cfg nltest_cfg = {
 	.compare = NULL,
 };
 
-struct sock *netlinkInit() {
+struct sock *netlink_init() {
     nlsk = netlink_kernel_create(&init_net, NETLINK_MYFW, &nltest_cfg);
 	if (!nlsk) {
 		printk(KERN_WARNING "[fw netlink] can not create a netlink socket\n");
@@ -64,6 +64,6 @@ struct sock *netlinkInit() {
     return nlsk;
 }
 
-void netlinkRelease() {
+void netlink_release() {
     netlink_kernel_release(nlsk);
 }

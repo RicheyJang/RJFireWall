@@ -62,8 +62,8 @@ struct KernelResponseHeader {
 #include <linux/netlink.h>
 #define NETLINK_MYFW 17
 
-struct sock *netlinkInit(void);
-void netlinkRelease(void);
+struct sock *netlink_init(void);
+void netlink_release(void);
 int nlSend(unsigned int pid, void *data, unsigned int len);
 
 // ----- 应用交互相关 -------
@@ -79,5 +79,11 @@ void* formAllIPLogs(unsigned int num, unsigned int *len);
 struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch);
 int addLog(struct IPLog log);
 int addLogBySKB(unsigned int action, struct sk_buff *skb);
+
+// ----- 连接池相关 --------
+#define CONN_ROLL_INTERVAL 5
+
+void conn_init(void);
+void conn_exit(void);
 
 #endif

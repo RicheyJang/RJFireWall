@@ -2,6 +2,8 @@
 #define _DEPENDENCY_H
 
 #include <linux/time.h>
+#include <linux/timer.h>
+#include <linux/jiffies.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
