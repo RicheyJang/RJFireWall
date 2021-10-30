@@ -85,6 +85,7 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb);
 // ----- 连接池相关 --------
 #include <linux/rbtree.h>
 
+#define CONN_NEEDLOG 0x10
 #define CONN_EXPIRES 5
 #define CONN_ROLL_INTERVAL 5
 #define CONN_MAX_SYM_NUM 3
@@ -96,6 +97,7 @@ typedef struct connNode {
     conn_key_t key; // 连接标识符
     unsigned long expires; // 超时时间
     u_int8_t protocol; // 协议，仅用于向用户展示
+    u_int8_t needLog; // 是否记录日志，仅用于hook
 }connNode;
 
 #define timeFromNow(plus) (jiffies + ((plus) * HZ))
@@ -103,7 +105,7 @@ typedef struct connNode {
 void conn_init(void);
 void conn_exit(void);
 int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto);
+int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
 int eraseConnRelated(struct IPRule rule);
 
 #endif

@@ -99,7 +99,7 @@ int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned s
 	node = searchNode(&connRoot, key);
 	if(node != NULL) {
 		node->expires = timeFromNow(CONN_EXPIRES); // 重新设置超时时间
-		return 1;
+		return (node->needLog != 0)? CONN_NEEDLOG : 1;
 	}
 	return 0;
 }
@@ -112,13 +112,14 @@ int hasConnBySKB(struct sk_buff *skb) {
 }
 
 // 新建连接
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto) {
+int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log) {
 	// 初始化
 	struct connNode *node = (struct connNode *)kzalloc(sizeof(connNode), GFP_KERNEL);
 	if(node == NULL) {
 		printk(KERN_WARNING "[fw conns] kzalloc fail.\n");
 		return 0;
 	}
+	node->needLog = log;
 	node->protocol = proto;
 	node->expires = timeFromNow(CONN_EXPIRES); // 设置超时时间
 	// 构建标识符

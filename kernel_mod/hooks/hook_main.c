@@ -8,7 +8,7 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
     struct IPRule rule;
     unsigned short sport, dport;
     unsigned int sip, dip, action = DEFAULT_ACTION;
-    int isMatch = 0;
+    int isMatch = 0, isLog = 0;
     // 初始化
 	struct iphdr *header = ip_hdr(skb);
 	getPort(skb,header,&sport,&dport);
@@ -17,6 +17,8 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
     // 查询是否有已有连接
     isMatch = hasConn(sip, dip, sport, dport);
     if(isMatch) {
+        if(isMatch == CONN_NEEDLOG) // 记录日志
+            addLogBySKB(action, skb);
         return NF_ACCEPT;
     }
     // 匹配规则
@@ -25,12 +27,13 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
         printk("[fw netfilter] patch rule %s.\n", rule.name);
         action = (rule.action==NF_ACCEPT) ? NF_ACCEPT : NF_DROP;
         if(rule.log) { // 记录日志
+            isLog = 1;
             addLogBySKB(action, skb);
         }
     }
     // 更新连接池
     if(action == NF_ACCEPT) {
-        addConn(sip,dip,sport,dport,header->protocol);
+        addConn(sip,dip,sport,dport,header->protocol,isLog);
     }
     return action;
 }
