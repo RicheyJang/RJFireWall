@@ -74,10 +74,10 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
     case REQ_ADDIPRule:
         if(addIPRuleToChain(req->ruleName, req->msg.ipRule)==NULL) {
             rspLen = sendMsgToApp(pid, "Fail: no such rule or retry it.");
-            printk("[fw k2app] add rule fail\n");
+            printk("[fw k2app] add rule fail.\n");
         } else {
             rspLen = sendMsgToApp(pid, "Success.");
-            printk("[fw k2app] add one rule success\n");
+            printk("[fw k2app] add one rule success: %s.\n", req->msg.ipRule.name);
         }
         break;
     case REQ_DELIPRule:

@@ -200,6 +200,7 @@ int eraseConnRelated(struct IPRule rule) {
 			count++;
 		}
 	}
+	printk("[fw conns] erase all related conn finish.\n");
 	return count;
 }
 
@@ -208,7 +209,7 @@ int rollConn(void) {
 	struct rb_node *node;
 	struct connNode *needDel = NULL;
 	int hasChange = 1; // 连接池是否有更改（删除节点）
-	printk("[fw conns] flush all conn start.\n");
+	//printk("[fw conns] flush all conn start.\n");
 	while(hasChange) { // 有更改时，持续遍历，防止漏下节点
 		hasChange = 0;
 		read_lock(&connLock);
@@ -224,7 +225,7 @@ int rollConn(void) {
 			eraseNode(&connRoot, needDel);
 		}
 	}
-	printk("[fw conns] flush all conn finish.\n");
+	//printk("[fw conns] flush all conn finish.\n");
 	return 0;
 }
 

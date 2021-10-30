@@ -49,14 +49,14 @@ int addLog(struct IPLog log) {
         logHead = logTail;
         logNum = 1;
         write_unlock(&logLock);
-        printk("[fw logs] add a log at head.\n");
+        //printk("[fw logs] add a log at head.\n");
         return 1;
     }
     logTail->nx = newLog;
     logTail = newLog;
     logNum++;
     write_unlock(&logLock);
-    printk("[fw logs] add a log.\n");
+    //printk("[fw logs] add a log.\n");
     if(logNum > MAX_LOG_LEN) {
         rollLog();
     }

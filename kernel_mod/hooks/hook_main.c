@@ -24,7 +24,7 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
     // 匹配规则
     rule = matchIPRules(skb, &isMatch);
     if(isMatch) { // 匹配到了一条规则
-        printk("[fw netfilter] patch rule %s.\n", rule.name);
+        printk(KERN_DEBUG "[fw netfilter] patch rule %s.\n", rule.name);
         action = (rule.action==NF_ACCEPT) ? NF_ACCEPT : NF_DROP;
         if(rule.log) { // 记录日志
             isLog = 1;
