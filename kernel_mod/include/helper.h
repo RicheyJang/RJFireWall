@@ -61,6 +61,8 @@ struct KernelResponseHeader {
 
 // ----- netlink 相关 -----
 #include <linux/netlink.h>
+
+// netlink 协议号
 #define NETLINK_MYFW 17
 
 struct sock *netlink_init(void);
@@ -76,7 +78,8 @@ void* formAllIPLogs(unsigned int num, unsigned int *len);
 void* formAllConns(unsigned int *len);
 
 // ----- netfilter相关 -----
-#define MAX_LOG_LEN 200
+// 最大缓存日志长度
+#define MAX_LOG_LEN 1000
 
 struct IPRule matchIPRules(struct sk_buff *skb, int *isMatch);
 int addLog(struct IPLog log);
@@ -86,9 +89,11 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb);
 #include <linux/rbtree.h>
 
 #define CONN_NEEDLOG 0x10
-#define CONN_EXPIRES 5
-#define CONN_ROLL_INTERVAL 5
 #define CONN_MAX_SYM_NUM 3
+// 新建连接或已有连接刷新时的存活时长（秒）
+#define CONN_EXPIRES 7
+// 定期清理超时连接的时间间隔（秒）
+#define CONN_ROLL_INTERVAL 5
 
 typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
 
