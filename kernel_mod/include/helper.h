@@ -11,6 +11,7 @@
 #define REQ_DELIPRule 3
 #define REQ_SETAction 4 
 #define REQ_GETAllIPLogs 5
+#define REQ_GETAllConns 6
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
@@ -72,6 +73,7 @@ void* formAllIPRules(unsigned int *len);
 struct IPRule * addIPRuleToChain(char after[], struct IPRule rule);
 int delIPRuleFromChain(char name[]);
 void* formAllIPLogs(unsigned int num, unsigned int *len);
+void* formAllConns(unsigned int *len);
 
 // ----- netfilter相关 -----
 #define MAX_LOG_LEN 200
@@ -91,8 +93,9 @@ typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于�
 
 typedef struct connNode {
     struct rb_node node;
-    conn_key_t key;
+    conn_key_t key; // 连接标识符
     unsigned long expires; // 超时时间
+    u_int8_t protocol; // 协议，仅用于向用户展示
 }connNode;
 
 #define timeFromNow(plus) (jiffies + ((plus) * HZ))
@@ -100,7 +103,7 @@ typedef struct connNode {
 void conn_init(void);
 void conn_exit(void);
 int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
+int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto);
 int eraseConnRelated(struct IPRule rule);
 
 #endif

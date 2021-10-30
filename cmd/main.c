@@ -61,7 +61,7 @@ void wrongCommand() {
 
 int main(int argc, char *argv[]) {
 	if(argc<3) {
-		addRule("","rj","192.168.80.138","47.100.10.21",-1,-1,IPPROTO_ICMP,1,NF_DROP);
+		//addRule("","rj","192.168.80.138","47.100.10.21",-1,-1,IPPROTO_ICMP,1,NF_DROP);
 		wrongCommand();
 		return 0;
 	}
@@ -95,10 +95,22 @@ int main(int argc, char *argv[]) {
 			wrongCommand();
 	} else if(strcmp(argv[1], "nat")==0 || argv[1][0] == 'n') {
 
-	} else if(strcmp(argv[1], "log")==0 || argv[1][0] == 'l') {
-		unsigned int num = 0;
-		sscanf(argv[2], "%u", &num);
-		showLogs(num);
+	} else if(strcmp(argv[1], "ls")==0 || argv[1][0] == 'l') {
+	// 展示相关
+		if(strcmp(argv[2],"log")==0) {
+		// 过滤日志
+			unsigned int num = 0;
+			if(argc > 3)
+				sscanf(argv[2], "%u", &num);
+			showLogs(num);
+		} else if(strcmp(argv[2],"con")==0 || argv[2][0] == 'c') {
+		// 连接状态
+			showConns();
+		} else if(strcmp(argv[2],"rule")==0 || argv[2][0] == 'r') {
+		// 已有过滤规则
+			showRules();
+		} else
+			wrongCommand();
 	} else 
 		wrongCommand();
 }

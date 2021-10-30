@@ -90,7 +90,7 @@ int showRules() {
 	return 0;
 }
 
-int showOneLog(struct IPLog log) {
+int showOneLog(struct IPLog log, int showAll) {
 	struct tm * timeinfo;
 	char saddr[25],daddr[25],proto[6],action[8],tm[21];
 	// ip
@@ -116,13 +116,17 @@ int showOneLog(struct IPLog log) {
 	} else {
 		sprintf(proto, "other");
 	}
-	// time
-	timeinfo = localtime(&log.tm);
-	sprintf(tm, "%4d-%02d-%02d %02d:%02d:%02d",
-        1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-	// print
-	printf("[%s] %-6s %-5s %15s:%-5u->%15s:%-5u len=%uB\n",
-		tm, action, proto, saddr, log.sport, daddr, log.dport, log.len);
+	if(showAll) {
+		// time
+		timeinfo = localtime(&log.tm);
+		sprintf(tm, "%4d-%02d-%02d %02d:%02d:%02d",
+			1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+		// print
+		printf("[%s] %-6s %-5s %15s:%-5u->%15s:%-5u len=%uB\n",
+			tm, action, proto, saddr, log.sport, daddr, log.dport, log.len);
+	} else { // show base
+		printf("%-5s %15s:%-5u->%15s:%-5u Established\n",proto, saddr, log.sport, daddr, log.dport);
+	}
 }
 
 int showLogs(unsigned int num) {
@@ -151,7 +155,37 @@ int showLogs(unsigned int num) {
 	}
 	printf("log num: %u\n", head->arrayLen);
 	for(i=0;i<head->arrayLen;i++) {
-		showOneLog(logs[i]);
+		showOneLog(logs[i], 1);
+	}
+	return 0;
+}
+
+int showConns(void) {
+	void *mem;
+	unsigned int rspLen,i;
+	struct IPLog *logs;
+	struct APPRequest req;
+	struct KernelResponseHeader *head;
+	// exchange msg
+	req.tp = REQ_GETAllConns;
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	head = (struct KernelResponseHeader *)mem;
+	if(head->bodyTp!=RSP_IPLogs || rspLen<sizeof(struct KernelResponseHeader)) {
+		printf("msg format error.\n");
+		return -1;
+	}
+	logs = (struct IPLog *)(mem+sizeof(struct KernelResponseHeader));
+	// show
+	if(head->arrayLen == 0) {
+		printf("No connections now.\n");
+		return 0;
+	}
+	printf("connection num: %u\n", head->arrayLen);
+	for(i=0;i<head->arrayLen;i++) {
+		showOneLog(logs[i], 0);
 	}
 	return 0;
 }

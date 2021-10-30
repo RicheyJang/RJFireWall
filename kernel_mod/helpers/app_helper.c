@@ -51,6 +51,16 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
         nlSend(pid, mem, rspLen);
         kfree(mem);
         break;
+    case REQ_GETAllConns:
+        mem = formAllConns(&rspLen);
+        if(mem == NULL) {
+            printk(KERN_WARNING "[fw k2app] formAllConns fail.\n");
+            sendMsgToApp(pid, "form all conns fail.");
+            break;
+        }
+        nlSend(pid, mem, rspLen);
+        kfree(mem);
+        break;
     case REQ_GETAllIPRules:
         mem = formAllIPRules(&rspLen);
         if(mem == NULL) {

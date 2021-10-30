@@ -17,6 +17,7 @@
 #define REQ_DELIPRule 3
 #define REQ_SETAction 4 
 #define REQ_GETAllIPLogs 5
+#define REQ_GETAllConns 6
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
@@ -70,5 +71,6 @@ int addRule(char *after,char *name,char *sip,char *dip,int sport,int dport,unsig
 int delRule(char *name);
 int setDefaultAction(unsigned int action);
 int showLogs(unsigned int num);
+int showConns(void);
 
 #endif

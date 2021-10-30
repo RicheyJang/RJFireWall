@@ -30,7 +30,7 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
     }
     // 更新连接池
     if(action == NF_ACCEPT) {
-        addConn(sip,dip,sport,dport);
+        addConn(sip,dip,sport,dport,header->protocol);
     }
     return action;
 }

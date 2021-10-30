@@ -112,13 +112,14 @@ int hasConnBySKB(struct sk_buff *skb) {
 }
 
 // 新建连接
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport) {
+int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto) {
 	// 初始化
 	struct connNode *node = (struct connNode *)kzalloc(sizeof(connNode), GFP_KERNEL);
 	if(node == NULL) {
 		printk(KERN_WARNING "[fw conns] kzalloc fail.\n");
 		return 0;
 	}
+	node->protocol = proto;
 	node->expires = timeFromNow(CONN_EXPIRES); // 设置超时时间
 	// 构建标识符
 	node->key[0] = sip;
@@ -126,6 +127,44 @@ int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned s
 	node->key[2] = ((((unsigned int)sport) << 16) | ((unsigned int)dport));
 	// 插入节点
 	return insertNode(&connRoot, node);
+}
+
+// 将所有已有连接形成Netlink回包
+void* formAllConns(unsigned int *len) {
+    struct KernelResponseHeader *head;
+    struct rb_node *node;
+	struct connNode *now;
+	struct IPLog log;
+    void *mem,*p;
+    unsigned int count;
+    read_lock(&connLock);
+	// 计算总量
+    for (node=rb_first(&connRoot),count=0;node;node=rb_next(node),count++); 
+	// 申请回包空间
+	*len = sizeof(struct KernelResponseHeader) + sizeof(struct IPLog) * count;
+	mem = kzalloc(*len, GFP_ATOMIC);
+    if(mem == NULL) {
+        printk(KERN_WARNING "[fw conns] formAllConns kzalloc fail.\n");
+        read_unlock(&connLock);
+        return NULL;
+    }
+    // 构建回包
+    head = (struct KernelResponseHeader *)mem;
+    head->bodyTp = RSP_IPLogs;
+    head->arrayLen = count;
+    p=(mem + sizeof(struct KernelResponseHeader));
+    for (node = rb_first(&connRoot); node; node=rb_next(node),p=p+sizeof(struct IPLog)) {
+		now = rb_entry(node, struct connNode, node);
+		log.saddr = now->key[0];
+		log.daddr = now->key[1];
+		log.sport = (unsigned short)(now->key[2] >> 16);
+		log.dport = (unsigned short)(now->key[2] & 0xFFFFu);
+		log.protocol = now->protocol;
+		log.action = NF_ACCEPT;
+		memcpy(p, &log, sizeof(struct IPLog));
+	}
+    read_unlock(&connLock);
+    return mem;
 }
 
 // 依据过滤规则，删除相关连接
