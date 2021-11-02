@@ -26,7 +26,7 @@ void cmdAddRule() {
 	printf("source ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",saddr);
 	printf("source port range [like 8080-8031]: ");
-	scanf("%u-%u",&sportMin,&sportMax);
+	scanf("%hu-%hu",&sportMin,&sportMax);
 	if(sportMin > sportMax) {
 		printf("the min port > max port.\n");
 		return ;
@@ -34,7 +34,7 @@ void cmdAddRule() {
 	printf("target ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",daddr);
 	printf("target port range [like 8080-8031]: ");
-	scanf("%u-%u",&dportMin,&dportMax);
+	scanf("%hu-%hu",&dportMin,&dportMax);
 	if(dportMin > dportMax) {
 		printf("the min port > max port.\n");
 		return ;

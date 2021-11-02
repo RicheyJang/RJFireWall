@@ -176,7 +176,7 @@ int eraseConnRelated(struct IPRule rule) {
 	unsigned int count = 0;
 	int hasChange = 1; // 连接池是否有更改（删除节点）
 	// 初始化
-	rule.protocol == IPPROTO_IP;
+	rule.protocol = IPPROTO_IP;
 	// 删除相关节点
 	while(hasChange) { // 有更改时，持续遍历，防止漏下节点
 		hasChange = 0;

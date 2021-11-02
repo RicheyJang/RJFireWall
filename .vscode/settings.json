@@ -28,6 +28,7 @@
 		"hook.h": "c",
 		"stdio.h": "c",
 		"time.h": "c",
-		"rbtree.h": "c"
+		"rbtree.h": "c",
+		"string.h": "c"
 	},
 }
