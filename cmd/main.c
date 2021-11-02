@@ -2,9 +2,10 @@
 
 // 新增过滤规则时的用户交互
 void cmdAddRule() {
-	char after[MAXRuleNameLen+1],name[MAXRuleNameLen+1],saddr[25],daddr[25],protoS[6];
+	char after[MAXRuleNameLen+1],name[MAXRuleNameLen+1],saddr[25],daddr[25],sport[15],dport[15],protoS[6];
 	unsigned short sportMin,sportMax,dportMin,dportMax;
 	unsigned int action = NF_DROP, log = 0, proto, i;
+	// 前序规则名
 	printf("add rule after [enter for adding at head]: ");
 	for(i=0;;i++) {
 		if(i>MAXRuleNameLen) {
@@ -17,28 +18,44 @@ void cmdAddRule() {
 			break;
 		}
 	}
+	// 规则名
 	printf("rule name [max len=%d]: ", MAXRuleNameLen);
 	scanf("%s",name);
 	if(strlen(name)==0 || strlen(name)>MAXRuleNameLen) {
 		printf("name too long or too short.\n");
 		return ;
 	}
+	// 源IP
 	printf("source ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",saddr);
-	printf("source port range [like 8080-8031]: ");
-	scanf("%hu-%hu",&sportMin,&sportMax);
+	// 源端口
+	printf("source port range [like 8080-8031 or any]: ");
+	scanf("%s",sport);
+	if(strcmp(sport, "any") == 0) {
+		sportMin = 0,sportMax = 0xFFFFu;
+	} else {
+		sscanf(sport,"%hu-%hu",&sportMin,&sportMax);
+	}
 	if(sportMin > sportMax) {
 		printf("the min port > max port.\n");
 		return ;
 	}
+	// 目的IP
 	printf("target ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",daddr);
-	printf("target port range [like 8080-8031]: ");
-	scanf("%hu-%hu",&dportMin,&dportMax);
+	// 目的端口
+	printf("target port range [like 8080-8031 or any]: ");
+	scanf("%s",dport);
+	if(strcmp(dport, "any") == 0) {
+		dportMin = 0,dportMax = 0xFFFFu;
+	} else {
+		sscanf(dport,"%hu-%hu",&dportMin,&dportMax);
+	}
 	if(dportMin > dportMax) {
 		printf("the min port > max port.\n");
 		return ;
 	}
+	// 协议
 	printf("protocol [TCP/UDP/ICMP/any]: ");
 	scanf("%s",protoS);
 	if(strcmp(protoS,"TCP")==0)
@@ -53,8 +70,10 @@ void cmdAddRule() {
 		printf("This protocol is not supported.\n");
 		return ;
 	}
+	// 动作
 	printf("action [1 for accept,0 for drop]: ");
 	scanf("%d",&action);
+	// 是否记录日志
 	printf("is log [1 for yes,0 for no]: ");
 	scanf("%u",&log);
 	printf("result:\n");
