@@ -53,9 +53,13 @@ int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr) {
     if(ipStr == NULL) {
         return -1;
     }
-	while((mask & 1u) == 0) {
-		maskNum--;
-		mask >>= 1;
+	if(mask == 0)
+		maskNum = 0;
+	else {
+		while((mask & 1u) == 0) {
+                	maskNum--;
+                	mask >>= 1;
+        	}
 	}
     for(i=0;i<4;i++) {
         ips[i] = ((ip >> ((3-i)*8)) & 0xFFU);
