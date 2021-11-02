@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 
 	} else if(strcmp(argv[1], "ls")==0 || argv[1][0] == 'l') {
 	// 展示相关
-		if(strcmp(argv[2],"log")==0) {
+		if(strcmp(argv[2],"log")==0 || argv[2][0] == 'l') {
 		// 过滤日志
 			unsigned int num = 0;
 			if(argc > 3)

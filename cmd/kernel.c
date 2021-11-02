@@ -21,10 +21,14 @@ int showOneRule(struct IPRule rule) {
 	// port
 	if(rule.sport == 0xFFFFu)
 		strcpy(sport, "any");
+	else if((rule.sport >> 16) == (rule.sport & 0xFFFFu))
+		sprintf(sport, "only %u", (rule.sport >> 16));
 	else
 		sprintf(sport, "%u~%u", (rule.sport >> 16), (rule.sport & 0xFFFFu));
 	if(rule.dport == 0xFFFFu)
 		strcpy(dport, "any");
+	else if((rule.dport >> 16) == (rule.dport & 0xFFFFu))
+		sprintf(dport, "only %u", (rule.dport >> 16));
 	else
 		sprintf(dport, "%u~%u", (rule.dport >> 16), (rule.dport & 0xFFFFu));
 	// action

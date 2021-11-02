@@ -98,8 +98,8 @@ bool matchOneRule(struct IPRule *rule,
  unsigned int sip, unsigned int dip, unsigned short sport, unsigned int dport, u_int8_t proto) {
     return (isIPMatch(sip,rule->saddr,rule->smask) &&
 			isIPMatch(dip,rule->daddr,rule->dmask) &&
-			(sport >= ((unsigned short)(rule->sport >> 16)) && sport <= ((unsigned short)(rule->sport && 0xFFFFu))) &&
-			(dport >= ((unsigned short)(rule->dport >> 16)) && dport <= ((unsigned short)(rule->dport && 0xFFFFu))) &&
+			(sport >= ((unsigned short)(rule->sport >> 16)) && sport <= ((unsigned short)(rule->sport & 0xFFFFu))) &&
+			(dport >= ((unsigned short)(rule->dport >> 16)) && dport <= ((unsigned short)(rule->dport & 0xFFFFu))) &&
 			(rule->protocol == IPPROTO_IP || rule->protocol == proto));
 }
 
