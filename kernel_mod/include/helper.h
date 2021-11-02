@@ -24,8 +24,8 @@ struct IPRule {
     unsigned int smask;
     unsigned int daddr;
     unsigned int dmask;
-    int sport;
-    int dport;
+    unsigned int sport; // 源端口范围 高2字节为最小 低2字节为最大
+    unsigned int dport; // 目的端口范围 同上
     u_int8_t protocol;
     unsigned int action;
     unsigned int log;
@@ -111,6 +111,7 @@ void conn_init(void);
 void conn_exit(void);
 int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
 int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
+bool matchOneRule(struct IPRule *rule, unsigned int sip, unsigned int dip, unsigned short sport, unsigned int dport, u_int8_t proto);
 int eraseConnRelated(struct IPRule rule);
 
 #endif

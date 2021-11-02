@@ -30,8 +30,8 @@ struct IPRule {
     unsigned int smask;
     unsigned int daddr;
     unsigned int dmask;
-    int sport;
-    int dport;
+    unsigned int sport; // 源端口范围 高2字节为最小 低2字节为最大
+    unsigned int dport; // 目的端口范围 同上
     u_int8_t protocol;
     unsigned int action;
     unsigned int log;
@@ -67,7 +67,7 @@ struct KernelResponseHeader {
 
 // ----- 与内核交互函数 -----
 int showRules(void);
-int addRule(char *after,char *name,char *sip,char *dip,int sport,int dport,unsigned int proto,unsigned int log,unsigned int action);
+int addRule(char *after,char *name,char *sip,char *dip,unsigned int sport,unsigned int dport,unsigned int proto,unsigned int log,unsigned int action);
 int delRule(char *name);
 int setDefaultAction(unsigned int action);
 int showLogs(unsigned int num);

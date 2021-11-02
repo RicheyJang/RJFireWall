@@ -14,19 +14,19 @@ int showKernelMsg(void *mem,unsigned int len) {
 }
 
 int showOneRule(struct IPRule rule) {
-	char saddr[25],daddr[25],sport[11],dport[11],proto[6],action[8],log[5];
+	char saddr[25],daddr[25],sport[13],dport[13],proto[6],action[8],log[5];
 	// ip
 	IPint2IPstr(rule.saddr,rule.smask,saddr);
 	IPint2IPstr(rule.daddr,rule.dmask,daddr);
 	// port
-	if(rule.sport < 0)
+	if(rule.sport == 0xFFFFu)
 		strcpy(sport, "any");
 	else
-		sprintf(sport, "%d", rule.sport);
-	if(rule.dport < 0)
+		sprintf(sport, "%u~%u", (rule.sport >> 16), (rule.sport & 0xFFFFu));
+	if(rule.dport == 0xFFFFu)
 		strcpy(dport, "any");
 	else
-		sprintf(dport, "%d", rule.dport);
+		sprintf(dport, "%u~%u", (rule.dport >> 16), (rule.dport & 0xFFFFu));
 	// action
 	if(rule.action == NF_ACCEPT) {
 		sprintf(action, "accept");
@@ -190,7 +190,8 @@ int showConns(void) {
 	return 0;
 }
 
-int addRule(char *after,char *name,char *sip,char *dip,int sport,int dport,unsigned int proto,unsigned int log,unsigned int action) {
+// 新增一条过滤规则，其中，sport/dport为端口范围：高2字节为最小 低2字节为最大
+int addRule(char *after,char *name,char *sip,char *dip,unsigned int sport,unsigned int dport,unsigned int proto,unsigned int log,unsigned int action) {
 	struct APPRequest req;
 	void *mem;
 	unsigned int rspLen;

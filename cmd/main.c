@@ -3,7 +3,7 @@
 // 新增过滤规则时的用户交互
 void cmdAddRule() {
 	char after[MAXRuleNameLen+1],name[MAXRuleNameLen+1],saddr[25],daddr[25],protoS[6];
-	int sport,dport;
+	unsigned short sportMin,sportMax,dportMin,dportMax;
 	unsigned int action = NF_DROP, log = 0, proto, i;
 	printf("add rule after [enter for adding at head]: ");
 	for(i=0;;i++) {
@@ -23,14 +23,22 @@ void cmdAddRule() {
 		printf("name too long or too short.\n");
 		return ;
 	}
-	printf("source ip and mask: ");
+	printf("source ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",saddr);
-	printf("source port [input -1 for any]: ");
-	scanf("%d",&sport);
-	printf("target ip and mask: ");
+	printf("source port range [like 8080-8031]: ");
+	scanf("%u-%u",&sportMin,&sportMax);
+	if(sportMin > sportMax) {
+		printf("the min port > max port.\n");
+		return ;
+	}
+	printf("target ip and mask [like 127.0.0.1/16]: ");
 	scanf("%s",daddr);
-	printf("target port [input -1 for any]: ");
-	scanf("%d",&dport);
+	printf("target port range [like 8080-8031]: ");
+	scanf("%u-%u",&dportMin,&dportMax);
+	if(dportMin > dportMax) {
+		printf("the min port > max port.\n");
+		return ;
+	}
 	printf("protocol [TCP/UDP/ICMP/any]: ");
 	scanf("%s",protoS);
 	if(strcmp(protoS,"TCP")==0)
@@ -50,7 +58,9 @@ void cmdAddRule() {
 	printf("is log [1 for yes,0 for no]: ");
 	scanf("%u",&log);
 	printf("result:\n");
-	addRule(after,name,saddr,daddr,sport,dport,proto,log,action);
+	addRule(after,name,saddr,daddr,
+		(((unsigned int)sportMin << 16) | (((unsigned int)sportMax) & 0xFFFFu)),
+		(((unsigned int)dportMin << 16) | (((unsigned int)dportMax) & 0xFFFFu)),proto,log,action);
 }
 
 void wrongCommand() {

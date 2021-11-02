@@ -171,25 +171,21 @@ void* formAllConns(unsigned int *len) {
 // 依据过滤规则，删除相关连接
 int eraseConnRelated(struct IPRule rule) {
 	struct rb_node *node;
+	unsigned short sport,dport;
 	struct connNode *needDel = NULL;
-	unsigned int pmask,port,count = 0;
+	unsigned int count = 0;
 	int hasChange = 1; // 连接池是否有更改（删除节点）
 	// 初始化
-	pmask = (rule.sport<0)? 0 : 0xFFFFu;
-	pmask <<= 16;
-	pmask |= (rule.dport<0)? 0 : 0xFFFFu;
-	port = (rule.sport<0)? 0 : (unsigned int)rule.sport;
-	port <<= 16;
-	port |= (rule.dport<0)? 0 : (unsigned int)rule.dport;
+	rule.protocol == IPPROTO_IP;
 	// 删除相关节点
 	while(hasChange) { // 有更改时，持续遍历，防止漏下节点
 		hasChange = 0;
 		read_lock(&connLock);
 		for (node = rb_first(&connRoot); node; node = rb_next(node)) {
 			needDel = rb_entry(node, struct connNode, node);
-			if(((rule.saddr & rule.smask) == (needDel->key[0] & rule.smask)) &&
-			   ((rule.daddr & rule.dmask) == (needDel->key[1] & rule.dmask)) &&
-			   ((      port &      pmask) == (needDel->key[2] &      pmask)) ) { // 相关规则
+			sport = (unsigned short)(needDel->key[2] >> 16);
+			dport = (unsigned short)(needDel->key[2] & 0xFFFFu);
+			if(matchOneRule(&rule, needDel->key[0], needDel->key[1], sport, dport, needDel->protocol)) { // 相关规则
 				hasChange = 1;
 				break;
 			}
