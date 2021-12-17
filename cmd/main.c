@@ -110,7 +110,9 @@ void cmdAddNATRule() {
 void wrongCommand() {
 	printf("wrong command.\n");
 	printf("uapp <command> <sub-command> [option]\n");
-	printf("command: rule <add | del | ls | default>\n");
+	printf("commands: rule <add | del | ls | default> [del rule's name]\n");
+	printf("          nat  <add | del | ls> [del number]\n");
+	printf("          ls   <rule | nat | log | connect>\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -180,6 +182,9 @@ int main(int argc, char *argv[]) {
 		} else if(strcmp(argv[2],"rule")==0 || argv[2][0] == 'r') {
 		// 已有过滤规则
 			showRules();
+		} else if(strcmp(argv[2],"nat")==0 || argv[2][0] == 'n') {
+		// 已有过滤规则
+			showNATRules();
 		} else
 			wrongCommand();
 	} else 
