@@ -118,6 +118,7 @@ void wrongCommand() {
 int main(int argc, char *argv[]) {
 	if(argc<3) {
 		//addRule("","rj","192.168.80.138","47.100.10.21",-1,-1,IPPROTO_ICMP,1,NF_DROP);
+		//addNATRule("192.168.60.2", "192.168.80.139",20000,35535);
 		wrongCommand();
 		return 0;
 	}

@@ -8,9 +8,12 @@ unsigned int hook_nat_in(void *priv,struct sk_buff *skb,const struct nf_hook_sta
     unsigned short sport, dport;
     unsigned int sip, dip;
     u_int8_t proto;
+    struct tcphdr *tcpHeader;
+    struct udphdr *udpHeader;
+    int hdr_len, tot_len;
     // 初始化
-	struct iphdr *header = ip_hdr(skb);
-	getPort(skb,header,&sport,&dport);
+    struct iphdr *header = ip_hdr(skb);
+    getPort(skb,header,&sport,&dport);
     sip = ntohl(header->saddr);
     dip = ntohl(header->daddr);
     proto = header->protocol;
@@ -24,21 +27,49 @@ unsigned int hook_nat_in(void *priv,struct sk_buff *skb,const struct nf_hook_sta
     if(conn->natType != NAT_TYPE_DEST) {
         return NF_ACCEPT;
     }
-    // TODO 转换目的地址+端口
-
+    // 转换目的地址+端口
+    record = conn->nat;
+    header->daddr = htonl(record.daddr);
+    hdr_len = header->ihl * 4;
+    tot_len = ntohs(header->tot_len);
+    header->check = 0;
+    header->check = ip_fast_csum(header, header->ihl);
+    switch(proto) {
+        case IPPROTO_TCP:
+            tcpHeader = (struct tcphdr *)(skb->data + (header->ihl * 4));
+            tcpHeader->dest = htons(record.dport);
+            tcpHeader->check = 0;
+            skb->csum = csum_partial((unsigned char *)tcpHeader, tot_len - hdr_len, 0);
+            tcpHeader->check = csum_tcpudp_magic(header->saddr, header->daddr,
+                                        tot_len - hdr_len, header->protocol, skb->csum);
+            break;
+        case IPPROTO_UDP:
+            udpHeader = (struct udphdr *)(skb->data + (header->ihl * 4));
+            udpHeader->dest = htons(record.dport);
+            udpHeader->check = 0;
+            skb->csum = csum_partial((unsigned char *)udpHeader, tot_len - hdr_len, 0);
+            udpHeader->check = csum_tcpudp_magic(header->saddr, header->daddr,
+                                        tot_len - hdr_len, header->protocol, skb->csum);
+            break;
+        case IPPROTO_ICMP:
+        default:
+            break;
+    }
     return NF_ACCEPT;
 }
 
 unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_state *state) {
     struct connNode *conn;
     struct NATRecord record;
-    int isMatch;
+    int isMatch, hdr_len, tot_len;
+    struct tcphdr *tcpHeader;
+    struct udphdr *udpHeader;
     u_int8_t proto;
     unsigned int sip, dip;
     unsigned short sport, dport, newPort = 0;
     // 初始化
-	struct iphdr *header = ip_hdr(skb);
-	getPort(skb,header,&sport,&dport);
+    struct iphdr *header = ip_hdr(skb);
+    getPort(skb,header,&sport,&dport);
     sip = ntohl(header->saddr);
     dip = ntohl(header->daddr);
     proto = header->protocol;
@@ -75,11 +106,37 @@ unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_st
             printk(KERN_WARNING "[fw nat] add reverse connection failed!\n");
             return NF_ACCEPT;
         }
+        reverseConn->expires = timeFromNow(CONN_EXPIRES * 2);
         setConnNAT(reverseConn, genNATRecord(rule.daddr, sip, newPort, sport), NAT_TYPE_DEST);
         // 记录在原连接中
         setConnNAT(conn, record, NAT_TYPE_SRC);
     }
-    // TODO 转换源地址+端口
-
+    // 转换源地址+端口
+    header->saddr = htonl(record.daddr);
+    hdr_len = header->ihl * 4;
+    tot_len = ntohs(header->tot_len);
+    header->check = 0;
+    header->check = ip_fast_csum(header, header->ihl);
+    switch(proto) {
+        case IPPROTO_TCP:
+            tcpHeader = (struct tcphdr *)(skb->data + (header->ihl * 4));
+            tcpHeader->source = htons(record.dport);
+            tcpHeader->check = 0;
+            skb->csum = csum_partial((unsigned char *)tcpHeader, tot_len - hdr_len, 0);
+            tcpHeader->check = csum_tcpudp_magic(header->saddr, header->daddr,
+                                        tot_len - hdr_len, header->protocol, skb->csum);
+            break;
+        case IPPROTO_UDP:
+            udpHeader = (struct udphdr *)(skb->data + (header->ihl * 4));
+            udpHeader->source = htons(record.dport);
+            udpHeader->check = 0;
+            skb->csum = csum_partial((unsigned char *)udpHeader, tot_len - hdr_len, 0);
+            udpHeader->check = csum_tcpudp_magic(header->saddr, header->daddr,
+                                        tot_len - hdr_len, header->protocol, skb->csum);
+            break;
+        case IPPROTO_ICMP:
+        default:
+            break;
+    }
     return NF_ACCEPT;
 }
