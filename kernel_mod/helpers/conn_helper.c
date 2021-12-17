@@ -88,7 +88,7 @@ int isTimeout(unsigned long expires) {
 }
 
 // 检查是否存在指定连接
-int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport) {
+struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport) {
 	conn_key_t key;
 	struct connNode *node = NULL;
 	// 构建标识符
@@ -99,16 +99,9 @@ int hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned s
 	node = searchNode(&connRoot, key);
 	if(node != NULL) {
 		node->expires = timeFromNow(CONN_EXPIRES); // 重新设置超时时间
-		return (node->needLog != 0)? CONN_NEEDLOG : 1;
+		return node;
 	}
-	return 0;
-}
-
-int hasConnBySKB(struct sk_buff *skb) {
-	unsigned short sport,dport;
-	struct iphdr *header = ip_hdr(skb);
-	getPort(skb,header,&sport,&dport);
-	return hasConn(ntohl(header->saddr),ntohl(header->daddr),sport,dport);
+	return NULL;
 }
 
 // 新建连接

@@ -50,6 +50,15 @@ struct IPLog {
     struct IPLog* nx;
 };
 
+struct NATRecord { // NAT 记录or规则 （源端口转换）
+    unsigned int saddr;
+    unsigned int smask; // 仅当作为一条NAT规则时起作用
+    unsigned int daddr;
+
+    unsigned short sport; // 当作为一条NAT规则时，代表最小端口范围
+    unsigned short dport; // 当作为一条NAT规则时，代表最大端口范围
+};
+
 struct APPRequest {
     unsigned int tp;
     char ruleName[MAXRuleNameLen+1];

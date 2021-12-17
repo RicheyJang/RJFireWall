@@ -6,6 +6,7 @@ const unsigned int DEFAULT_ACTION = NF_ACCEPT;
 
 unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state *state) {
     struct IPRule rule;
+    struct connNode *conn;
     unsigned short sport, dport;
     unsigned int sip, dip, action = DEFAULT_ACTION;
     int isMatch = 0, isLog = 0;
@@ -15,9 +16,9 @@ unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state
     sip = ntohl(header->saddr);
     dip = ntohl(header->daddr);
     // 查询是否有已有连接
-    isMatch = hasConn(sip, dip, sport, dport);
-    if(isMatch) {
-        if(isMatch == CONN_NEEDLOG) // 记录日志
+    conn = hasConn(sip, dip, sport, dport);
+    if(conn != NULL) {
+        if(conn->needLog) // 记录日志
             addLogBySKB(action, skb);
         return NF_ACCEPT;
     }
