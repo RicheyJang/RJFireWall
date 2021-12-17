@@ -18,11 +18,15 @@
 #define REQ_SETAction 4 
 #define REQ_GETAllIPLogs 5
 #define REQ_GETAllConns 6
+#define REQ_ADDNATRule 7
+#define REQ_DELNATRule 8
+#define REQ_GETNATRules 9
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
 #define RSP_IPRules 12
 #define RSP_IPLogs 13
+#define RSP_NATRules 14
 
 struct IPRule {
     char name[MAXRuleNameLen+1];
@@ -57,6 +61,7 @@ struct NATRecord { // NAT 记录or规则 （源端口转换）
 
     unsigned short sport; // 当作为一条NAT规则时，代表最小端口范围
     unsigned short dport; // 当作为一条NAT规则时，代表最大端口范围
+    struct NATRecord* nx;
 };
 
 struct APPRequest {
@@ -64,6 +69,7 @@ struct APPRequest {
     char ruleName[MAXRuleNameLen+1];
     union {
         struct IPRule ipRule;
+        struct NATRecord natRule;
         unsigned int defaultAction;
         unsigned int num;
     } msg;
@@ -77,6 +83,9 @@ struct KernelResponseHeader {
 // ----- 与内核交互函数 -----
 int showRules(void);
 int addRule(char *after,char *name,char *sip,char *dip,unsigned int sport,unsigned int dport,unsigned int proto,unsigned int log,unsigned int action);
+int addNATRule(char *sip,char *nat,unsigned short minport,unsigned short maxport);
+int delNATRule(int num);
+int showNATRules();
 int delRule(char *name);
 int setDefaultAction(unsigned int action);
 int showLogs(unsigned int num);

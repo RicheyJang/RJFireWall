@@ -30,6 +30,7 @@ struct NATRecord * addNATRuleToChain(struct NATRecord rule) {
 // 删除序号为num的NAT规则
 int delNATRuleFromChain(int num) {
     struct NATRecord *now,*tmp;
+    struct IPRule iprule;
     int count = 0;
     write_lock(&natRuleLock);
     if(num == 0) {
@@ -43,6 +44,12 @@ int delNATRuleFromChain(int num) {
         if(count == num) { // 删除规则
             tmp = now->nx;
             now->nx = now->nx->nx;
+            iprule.saddr = tmp->saddr; // 消除连接池影响
+            iprule.smask = tmp->smask;
+            iprule.dmask = 0;
+            iprule.sport = 0xFFFFu;
+            iprule.dport = 0xFFFFu;
+            eraseConnRelated(iprule);
             kfree(tmp);
             write_unlock(&natRuleLock);
             return 1;

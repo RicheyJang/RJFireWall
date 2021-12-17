@@ -82,6 +82,31 @@ void cmdAddRule() {
 		(((unsigned int)dportMin << 16) | (((unsigned int)dportMax) & 0xFFFFu)),proto,log,action);
 }
 
+void cmdAddNATRule() {
+	char saddr[25],daddr[25],port[15];
+	unsigned short portMin,portMax;
+	printf("ONLY source NAT is supported\n");
+	// 源IP
+	printf("source ip and mask [like 127.0.0.1/16]: ");
+	scanf("%s",saddr);
+	// NAT IP
+	printf("NAT ip [like 192.168.80.139]: ");
+	scanf("%s",daddr);
+	// 目的端口
+	printf("NAT port range [like 10000-30000 or any]: ");
+	scanf("%s",port);
+	if(strcmp(port, "any") == 0) {
+		portMin = 0,portMax = 0xFFFFu;
+	} else {
+		sscanf(port,"%hu-%hu",&portMin,&portMax);
+	}
+	if(portMin > portMax) {
+		printf("the min port > max port.\n");
+		return ;
+	}
+	addNATRule(saddr,daddr,portMin,portMax);
+}
+
 void wrongCommand() {
 	printf("wrong command.\n");
 	printf("uapp <command> <sub-command> [option]\n");
@@ -123,7 +148,24 @@ int main(int argc, char *argv[]) {
 		} else 
 			wrongCommand();
 	} else if(strcmp(argv[1], "nat")==0 || argv[1][0] == 'n') {
-
+		if(strcmp(argv[2], "ls")==0 || strcmp(argv[2], "list")==0) {
+		// 列出所有NAT规则
+			showNATRules();
+		} else if(strcmp(argv[2], "del")==0) {
+		// 删除NAT规则
+			if(argc < 4)
+				printf("Please point rule number(seq) in option.\n");
+			else {
+				int num;
+				sscanf(argv[3], "%d", &num);
+				delNATRule(num);
+			}
+		} else if(strcmp(argv[2], "add")==0) {
+		// 添加NAT规则
+			cmdAddNATRule();
+		} else {
+			wrongCommand();
+		}
 	} else if(strcmp(argv[1], "ls")==0 || argv[1][0] == 'l') {
 	// 展示相关
 		if(strcmp(argv[2],"log")==0 || argv[2][0] == 'l') {

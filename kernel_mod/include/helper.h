@@ -63,6 +63,7 @@ struct APPRequest {
     char ruleName[MAXRuleNameLen+1];
     union {
         struct IPRule ipRule;
+        struct NATRecord natRule;
         unsigned int defaultAction;
         unsigned int num;
     } msg;

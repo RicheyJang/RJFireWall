@@ -94,6 +94,39 @@ int dealAppMessage(unsigned int pid, void *msg, unsigned int len) {
         nlSend(pid, rspH, rspLen);
         kfree(rspH);
         break;
+    case REQ_GETNATRules:
+        mem = formAllNATRules(&rspLen);
+        if(mem == NULL) {
+            printk(KERN_WARNING "[fw k2app] formAllNATRules fail.\n");
+            sendMsgToApp(pid, "form all NAT rules fail.");
+            break;
+        }
+        nlSend(pid, mem, rspLen);
+        kfree(mem);
+        break;
+    case REQ_ADDNATRule:
+        if(addNATRuleToChain(req->msg.natRule)==NULL) {
+            rspLen = sendMsgToApp(pid, "Fail: please retry it.");
+            printk("[fw k2app] add NAT rule fail.\n");
+        } else {
+            rspLen = sendMsgToApp(pid, "Success.");
+            printk("[fw k2app] add one NAT rule success.\n");
+        }
+        break;
+    case REQ_DELNATRule:
+        rspLen = sizeof(struct KernelResponseHeader);
+        rspH = (struct KernelResponseHeader *)kzalloc(rspLen, GFP_KERNEL);
+        if(rspH == NULL) {
+            printk(KERN_WARNING "[fw k2app] kzalloc fail.\n");
+            sendMsgToApp(pid, "form rsp fail but del maybe success.");
+            break;
+        }
+        rspH->bodyTp = RSP_Only_Head;
+        rspH->arrayLen = delNATRuleFromChain(req->msg.num);
+        printk("[fw k2app] success del %d NAT rules.\n", rspH->arrayLen);
+        nlSend(pid, rspH, rspLen);
+        kfree(rspH);
+        break;
     case REQ_SETAction:
         if(req->msg.defaultAction == NF_ACCEPT) {
             DEFAULT_ACTION = NF_ACCEPT;

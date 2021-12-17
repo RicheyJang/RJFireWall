@@ -94,6 +94,40 @@ int showRules() {
 	return 0;
 }
 
+int showNATRules() {
+	void *mem;
+	unsigned int rspLen,i;
+	struct NATRecord *rules;
+	struct APPRequest req;
+	struct KernelResponseHeader *head;
+	char saddr[25],daddr[25];
+	// exchange msg
+	req.tp = REQ_GETNATRules;
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	head = (struct KernelResponseHeader *)mem;
+	if(head->bodyTp!=RSP_NATRules || rspLen<sizeof(struct KernelResponseHeader)) {
+		printf("msg format error.\n");
+		return -1;
+	}
+	rules = (struct NATRecord*)(mem+sizeof(struct KernelResponseHeader));
+	// show
+	if(head->arrayLen==0) {
+		printf("No NAT rules now.\n");
+		return 0;
+	}
+	printf("NAT rule num: %u\n", head->arrayLen);
+	printf("seq:\t%18s->%-18s:%-11s\n", "source ip", "NAT ip", "NAT port");
+	for(i=0;i<head->arrayLen;i++) {
+		IPint2IPstr(rules[i].saddr,rules[i].smask,saddr);
+		IPint2IPstr(rules[i].daddr,0xffffffffu,daddr);
+		printf("%d:\t%18s->%-18s:%u-%u\n", i, saddr, daddr, rules[i].sport, rules[i].dport);
+	}
+	return 0;
+}
+
 int showOneLog(struct IPLog log, int showAll) {
 	struct tm * timeinfo;
 	char saddr[25],daddr[25],proto[6],action[8],tm[21];
@@ -265,4 +299,54 @@ int setDefaultAction(unsigned int action) {
 	// print result
 	showKernelMsg(mem,rspLen);
     return 0;
+}
+
+int addNATRule(char *sip,char *nat,unsigned short minport,unsigned short maxport) {
+	struct APPRequest req;
+	void *mem;
+	unsigned int rspLen;
+	// form rule
+	struct NATRecord rule;
+	if(IPstr2IPint(nat,&rule.daddr,&rule.smask)!=0) {
+		printf("wrong ip format: %s\n", nat);
+		return -1;
+	}
+	if(IPstr2IPint(sip,&rule.saddr,&rule.smask)!=0) {
+		printf("wrong ip format: %s\n", sip);
+		return -1;
+	}
+	rule.sport = minport;
+	rule.dport = maxport;
+	// form req
+	req.tp = REQ_ADDNATRule;
+	req.msg.natRule = rule;
+	// exchange
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	showKernelMsg(mem,rspLen);
+	return 0;
+}
+
+int delNATRule(int num) {
+	void *mem;
+	unsigned int rspLen;
+	struct APPRequest req;
+	struct KernelResponseHeader *head;
+	if(num<0) {
+		printf("no such rule\n");
+		return -1;
+	}
+	req.tp = REQ_DELNATRule;
+	req.msg.num = num;
+	// exchange
+	if(exchangeMsgK(&req,sizeof(req),&mem,&rspLen)<0) {
+		printf("exchange with kernel failed.\n");
+		return -2;
+	}
+	// print result
+	head = (struct KernelResponseHeader *)mem;
+	printf("del %d rules.\n", head->arrayLen);
+    return head->arrayLen;
 }
