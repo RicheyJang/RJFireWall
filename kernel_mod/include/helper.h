@@ -12,11 +12,15 @@
 #define REQ_SETAction 4 
 #define REQ_GETAllIPLogs 5
 #define REQ_GETAllConns 6
+#define REQ_ADDNATRule 7
+#define REQ_DELNATRule 8
+#define REQ_GETNATRules 9
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
 #define RSP_IPRules 12
 #define RSP_IPLogs 13
+#define RSP_NATRules 14
 
 struct IPRule {
     char name[MAXRuleNameLen+1];
@@ -51,6 +55,7 @@ struct NATRecord { // NAT 记录or规则 （源端口转换）
 
     unsigned short sport; // 当作为一条NAT规则时，代表最小端口范围
     unsigned short dport; // 当作为一条NAT规则时，代表最大端口范围
+    struct NATRecord* nx;
 };
 
 struct APPRequest {
@@ -85,6 +90,9 @@ struct IPRule * addIPRuleToChain(char after[], struct IPRule rule);
 int delIPRuleFromChain(char name[]);
 void* formAllIPLogs(unsigned int num, unsigned int *len);
 void* formAllConns(unsigned int *len);
+struct NATRecord * addNATRuleToChain(struct NATRecord rule);
+int delNATRuleFromChain(int num);
+void* formAllNATRules(unsigned int *len);
 
 // ----- netfilter相关 -----
 // 最大缓存日志长度
@@ -126,12 +134,13 @@ typedef struct connNode {
 void conn_init(void);
 void conn_exit(void);
 struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
+struct connNode *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
 bool matchOneRule(struct IPRule *rule, unsigned int sip, unsigned int dip, unsigned short sport, unsigned int dport, u_int8_t proto);
 int eraseConnRelated(struct IPRule rule);
 
 // ---- NAT 初始操作相关 ----
 
-
+int setConnNAT(struct connNode *node, struct NATRecord record, int natType);
+struct NATRecord *matchNATRule(unsigned int sip);
 
 #endif

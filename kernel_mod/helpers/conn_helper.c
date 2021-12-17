@@ -39,11 +39,11 @@ struct connNode *searchNode(struct rb_root *root, conn_key_t key) {
 	return NULL;
 }
 
-// 插入新节点，返回0标识节点已存在
-int insertNode(struct rb_root *root, struct connNode *data) {
+// 插入新节点，返回节点
+struct connNode *insertNode(struct rb_root *root, struct connNode *data) {
 	struct rb_node **new, *parent;
 	if(data == NULL) {
-		return 0;
+		return NULL;
 	}
 	parent = NULL;
 	read_lock(&connLock);
@@ -59,7 +59,7 @@ int insertNode(struct rb_root *root, struct connNode *data) {
 			new = &((*new)->rb_right);
 		else { // 已存在
 			read_unlock(&connLock);
-			return 0;
+			return this;
 		}
 	}
 	/* Add new node and rebalance tree. */
@@ -68,7 +68,7 @@ int insertNode(struct rb_root *root, struct connNode *data) {
 	rb_link_node(&data->node, parent, new);
 	rb_insert_color(&data->node, root);
 	write_unlock(&connLock);
-	return 1; // 插入成功
+	return data; // 插入成功
 }
 
 // 删除节点
@@ -105,7 +105,7 @@ struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short spor
 }
 
 // 新建连接
-int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log) {
+struct connNode *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log) {
 	// 初始化
 	struct connNode *node = (struct connNode *)kzalloc(sizeof(connNode), GFP_KERNEL);
 	if(node == NULL) {
@@ -115,12 +115,24 @@ int addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned s
 	node->needLog = log;
 	node->protocol = proto;
 	node->expires = timeFromNow(CONN_EXPIRES); // 设置超时时间
+	node->natType = NAT_TYPE_NO;
 	// 构建标识符
 	node->key[0] = sip;
 	node->key[1] = dip;
 	node->key[2] = ((((unsigned int)sport) << 16) | ((unsigned int)dport));
 	// 插入节点
 	return insertNode(&connRoot, node);
+}
+
+// 设置连接的NAT
+int setConnNAT(struct connNode *node, struct NATRecord record, int natType) {
+	if(node==NULL)
+		return 0;
+	write_lock(&connLock);
+	node->natType = natType;
+	node->nat = record;
+	write_unlock(&connLock);
+	return 1;
 }
 
 // 将所有已有连接形成Netlink回包
