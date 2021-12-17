@@ -138,6 +138,7 @@ struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short spor
 struct connNode *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
 bool matchOneRule(struct IPRule *rule, unsigned int sip, unsigned int dip, unsigned short sport, unsigned int dport, u_int8_t proto);
 int eraseConnRelated(struct IPRule rule);
+void addConnExpires(struct connNode *node, unsigned int plus);
 
 // ---- NAT 初始操作相关 ----
 

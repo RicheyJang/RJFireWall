@@ -59,14 +59,14 @@ unsigned int hook_nat_in(void *priv,struct sk_buff *skb,const struct nf_hook_sta
 }
 
 unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_state *state) {
-    struct connNode *conn;
+    struct connNode *conn,*reverseConn;
     struct NATRecord record;
     int isMatch, hdr_len, tot_len;
     struct tcphdr *tcpHeader;
     struct udphdr *udpHeader;
     u_int8_t proto;
     unsigned int sip, dip;
-    unsigned short sport, dport, newPort = 0;
+    unsigned short sport, dport;
     // 初始化
     struct iphdr *header = ip_hdr(skb);
     getPort(skb,header,&sport,&dport);
@@ -83,7 +83,7 @@ unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_st
     if(conn->natType == NAT_TYPE_SRC) { // 已有
         record = conn->nat;
     } else {
-        struct connNode *reverseConn;
+        unsigned short newPort = 0;
         struct NATRecord rule = matchNATRule(sip, dip, &isMatch);
         if(!isMatch) { // 不符合NAT规则，无需NAT
             return NF_ACCEPT;
@@ -97,20 +97,20 @@ unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_st
             }
         }
         record = genNATRecord(sip, rule.daddr, sport, newPort);
-        // 新建反向连接入连接池
-        reverseConn = hasConn(dip, rule.daddr, dport, newPort);
-        if(reverseConn == NULL) {
-            reverseConn = addConn(dip, rule.daddr, dport, newPort, proto, 0);
-        }
+        // 记录在原连接中
+        setConnNAT(conn, record, NAT_TYPE_SRC);
+    }
+    // 寻找反向连接
+    reverseConn = hasConn(dip, record.daddr, dport, record.dport);
+    if(reverseConn == NULL) { // 新建反向连接入连接池
+        reverseConn = addConn(dip, record.daddr, dport, record.dport, proto, 0);
         if(reverseConn == NULL) { // 创建反向连接失败，放弃NAT
             printk(KERN_WARNING "[fw nat] add reverse connection failed!\n");
             return NF_ACCEPT;
         }
-        reverseConn->expires = timeFromNow(CONN_EXPIRES * 2);
-        setConnNAT(reverseConn, genNATRecord(rule.daddr, sip, newPort, sport), NAT_TYPE_DEST);
-        // 记录在原连接中
-        setConnNAT(conn, record, NAT_TYPE_SRC);
+        setConnNAT(reverseConn, genNATRecord(record.daddr, sip, record.dport, sport), NAT_TYPE_DEST);
     }
+    addConnExpires(reverseConn, CONN_EXPIRES * 2); // 更新超时时间
     // 转换源地址+端口
     header->saddr = htonl(record.daddr);
     hdr_len = header->ihl * 4;

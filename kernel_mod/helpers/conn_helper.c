@@ -87,6 +87,14 @@ int isTimeout(unsigned long expires) {
 	return (jiffies >= expires)? 1 : 0; // 当前时间 >= 超时时间 ?
 }
 
+void addConnExpires(struct connNode *node, unsigned int plus) {
+	if(node == NULL)
+		return ;
+	write_lock(&connLock);
+	node->expires = timeFromNow(plus);
+	write_unlock(&connLock);
+}
+
 // 检查是否存在指定连接
 struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport) {
 	conn_key_t key;
@@ -97,11 +105,8 @@ struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short spor
 	key[2] = ((((unsigned int)sport) << 16) | ((unsigned int)dport));
 	// 查找节点
 	node = searchNode(&connRoot, key);
-	if(node != NULL) {
-		node->expires = timeFromNow(CONN_EXPIRES); // 重新设置超时时间
-		return node;
-	}
-	return NULL;
+	addConnExpires(node, CONN_EXPIRES); // 重新设置超时时间
+	return node;
 }
 
 // 新建连接
