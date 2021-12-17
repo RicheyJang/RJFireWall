@@ -48,13 +48,13 @@ struct IPLog {
     struct IPLog* nx;
 };
 
-struct NATRecord { // NAT 记录or规则 （源端口转换）
-    unsigned int saddr;
-    unsigned int smask; // 仅当作为一条NAT规则时起作用
-    unsigned int daddr;
+struct NATRecord { // NAT 记录 or 规则(源IP端口转换)
+    unsigned int saddr; // 记录：原始IP | 规则：原始源IP
+    unsigned int smask; // 记录：无作用  | 规则：原始源IP掩码
+    unsigned int daddr; // 记录：转换后的IP | 规则：NAT 源IP
 
-    unsigned short sport; // 当作为一条NAT规则时，代表最小端口范围
-    unsigned short dport; // 当作为一条NAT规则时，代表最大端口范围
+    unsigned short sport; // 记录：原始端口 | 规则：最小端口范围
+    unsigned short dport; // 记录：转换后的端口 | 规则：最大端口范围
     struct NATRecord* nx;
 };
 
@@ -142,6 +142,8 @@ int eraseConnRelated(struct IPRule rule);
 // ---- NAT 初始操作相关 ----
 
 int setConnNAT(struct connNode *node, struct NATRecord record, int natType);
-struct NATRecord *matchNATRule(unsigned int sip);
+struct NATRecord matchNATRule(unsigned int sip, unsigned int dip, int *isMatch);
+unsigned short getNewNATPort(struct NATRecord rule);
+struct NATRecord genNATRecord(unsigned int preIP, unsigned int afterIP, unsigned short prePort, unsigned short afterPort);
 
 #endif

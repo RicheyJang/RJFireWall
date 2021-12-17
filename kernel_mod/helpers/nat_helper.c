@@ -83,15 +83,32 @@ void* formAllNATRules(unsigned int *len) {
     return mem;
 }
 
-struct NATRecord *matchNATRule(unsigned int sip) {
-    struct NATRecord *now;
+struct NATRecord matchNATRule(unsigned int sip, unsigned int dip, int *isMatch) {
+    struct NATRecord *now,empty;
+    *isMatch = 0;
     read_lock(&natRuleLock);
 	for(now=natRuleHead;now!=NULL;now=now->nx) {
-		if(isIPMatch(sip, now->saddr, now->smask)) {
+		if(isIPMatch(sip, now->saddr, now->smask) &&
+           !isIPMatch(dip, now->saddr, now->smask) &&
+           dip != now->daddr) {
             read_unlock(&natRuleLock);
-			return now;
+            *isMatch = 1;
+			return *now;
 		}
 	}
 	read_unlock(&natRuleLock);
-    return NULL;
+    return empty;
+}
+
+struct NATRecord genNATRecord(unsigned int preIP, unsigned int afterIP, unsigned short prePort, unsigned short afterPort) {
+    struct NATRecord record;
+    record.saddr = preIP;
+    record.sport = prePort;
+    record.daddr = afterIP;
+    record.dport = afterPort;
+    return record;
+}
+
+unsigned short getNewNATPort(struct NATRecord rule) {
+    // TODO 新端口
 }
