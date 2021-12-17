@@ -96,7 +96,7 @@ sudo make install
 
 删除一条NAT规则：
 ```bash
-./uapp rule del 所需删除NAT规则的序号
+./uapp nat del 所需删除NAT规则的序号
 ```
 
 展示已有NAT规则：
