@@ -12,8 +12,8 @@
 - [x] 记录报文过滤日志及通过命令行应用查看
 - [x] 连接状态检测与记录
 - [x] 通过命令行应用查看已建立的所有连接
-- [ ] NAT
-- [ ] 配置NAT规则
+- [x] NAT
+- [x] 配置NAT规则
 - [ ] ~~图形化界面 防火墙还写啥GUI~~
 
 # 安装
@@ -86,4 +86,20 @@ sudo make install
 展示当前已有连接：
 ```bash
 ./uapp ls connect
+```
+
+新增一条NAT规则：
+```bash
+./uapp nat add
+```
+随后依据命令行提示设定规则即可。
+
+删除一条NAT规则：
+```bash
+./uapp rule del 所需删除NAT规则的序号
+```
+
+展示已有NAT规则：
+```bash
+./uapp ls nat
 ```

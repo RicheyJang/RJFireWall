@@ -55,6 +55,7 @@ struct NATRecord { // NAT 记录 or 规则(源IP端口转换)
 
     unsigned short sport; // 记录：原始端口 | 规则：最小端口范围
     unsigned short dport; // 记录：转换后的端口 | 规则：最大端口范围
+    unsigned short nowPort; // 记录：当前使用端口 | 规则：无作用
     struct NATRecord* nx;
 };
 
@@ -143,7 +144,7 @@ void addConnExpires(struct connNode *node, unsigned int plus);
 // ---- NAT 初始操作相关 ----
 
 int setConnNAT(struct connNode *node, struct NATRecord record, int natType);
-struct NATRecord matchNATRule(unsigned int sip, unsigned int dip, int *isMatch);
+struct NATRecord *matchNATRule(unsigned int sip, unsigned int dip, int *isMatch);
 unsigned short getNewNATPort(struct NATRecord rule);
 struct NATRecord genNATRecord(unsigned int preIP, unsigned int afterIP, unsigned short prePort, unsigned short afterPort);
 

@@ -140,6 +140,37 @@ int setConnNAT(struct connNode *node, struct NATRecord record, int natType) {
 	return 1;
 }
 
+// 获取新的可用NAT端口
+unsigned short getNewNATPort(struct NATRecord rule) {
+	struct rb_node *node;
+	struct connNode *now;
+	unsigned short port, inUse;
+	// 遍历
+	if(rule.nowPort > rule.dport || rule.nowPort < rule.sport)
+		rule.nowPort = rule.dport;
+	for(port = rule.nowPort + 1; port != rule.nowPort; port++) {
+		if(port > rule.dport || port < rule.sport)
+			port = rule.sport;
+		read_lock(&connLock);
+		for(node = rb_first(&connRoot), inUse = 0; node; node=rb_next(node)) {
+			now = rb_entry(node, struct connNode, node);
+			if(now->natType != NAT_TYPE_SRC)
+				continue;
+			if(now->nat.daddr != rule.daddr)
+				continue;
+			if(port == now->nat.dport) {
+				inUse = 1;
+				break;
+			}
+		}
+		read_unlock(&connLock);
+		if(!inUse) {
+			return port;
+		}
+	}
+	return 0;
+}
+
 // 将所有已有连接形成Netlink回包
 void* formAllConns(unsigned int *len) {
     struct KernelResponseHeader *head;

@@ -84,21 +84,22 @@ unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_st
         record = conn->nat;
     } else {
         unsigned short newPort = 0;
-        struct NATRecord rule = matchNATRule(sip, dip, &isMatch);
-        if(!isMatch) { // 不符合NAT规则，无需NAT
+        struct NATRecord *rule = matchNATRule(sip, dip, &isMatch);
+        if(!isMatch || rule == NULL) { // 不符合NAT规则，无需NAT
             return NF_ACCEPT;
         }
         // 新建NAT记录
         if(sport != 0) {
-            newPort = getNewNATPort(rule);
+            newPort = getNewNATPort(*rule);
             if(newPort == 0) { // 获取新端口失败，放弃NAT
                 printk(KERN_WARNING "[fw nat] get new port failed!\n");
                 return NF_ACCEPT;
             }
         }
-        record = genNATRecord(sip, rule.daddr, sport, newPort);
+        record = genNATRecord(sip, rule->daddr, sport, newPort);
         // 记录在原连接中
         setConnNAT(conn, record, NAT_TYPE_SRC);
+        rule->nowPort = newPort;
     }
     // 寻找反向连接
     reverseConn = hasConn(dip, record.daddr, dport, record.dport);
