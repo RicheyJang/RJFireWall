@@ -111,7 +111,8 @@ unsigned int hook_nat_out(void *priv,struct sk_buff *skb,const struct nf_hook_st
         }
         setConnNAT(reverseConn, genNATRecord(record.daddr, sip, record.dport, sport), NAT_TYPE_DEST);
     }
-    addConnExpires(reverseConn, CONN_EXPIRES * 2); // 更新超时时间
+    addConnExpires(reverseConn, CONN_EXPIRES * CONN_NAT_TIMES); // 更新超时时间
+    addConnExpires(conn, CONN_EXPIRES * CONN_NAT_TIMES); // 更新超时时间
     // 转换源地址+端口
     header->saddr = htonl(record.daddr);
     hdr_len = header->ihl * 4;

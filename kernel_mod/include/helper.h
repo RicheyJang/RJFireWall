@@ -124,10 +124,9 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb);
 
 #define CONN_NEEDLOG 0x10
 #define CONN_MAX_SYM_NUM 3
-// 新建连接或已有连接刷新时的存活时长（秒）
-#define CONN_EXPIRES 7
-// 定期清理超时连接的时间间隔（秒）
-#define CONN_ROLL_INTERVAL 5
+#define CONN_EXPIRES 7 // 新建连接或已有连接刷新时的存活时长（秒）
+#define CONN_NAT_TIMES 10 // NAT的超时时间倍率
+#define CONN_ROLL_INTERVAL 5 // 定期清理超时连接的时间间隔（秒）
 
 typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
 
