@@ -1,7 +1,4 @@
-#ifndef _TOOLS_H
-#define _TOOLS_H
-
-#include <string.h>
+#include "common.h"
 
 int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask){
 	// init
@@ -79,5 +76,3 @@ int IPint2IPstrNoMask(unsigned int ip, char *ipStr) {
 	sprintf(ipStr, "%u.%u.%u.%u", ips[0], ips[1], ips[2], ips[3]);
 	return 0;
 }
-
-#endif

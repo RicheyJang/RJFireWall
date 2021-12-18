@@ -1,6 +1,6 @@
 TARGET := uapp
-INCLUDES := -I. -Iinclude
-SRCS = kernel.c main.c exchange.c
+INCLUDES := -I. -Iinclude -I../common/include
+SRCS = ../common/exchange.c ../common/tools.c ../common/helper.c kernel.c main.c
 CC := gcc
 OBJS = $(SRCS:.c=.o)
 

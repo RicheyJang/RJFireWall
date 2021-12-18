@@ -18,9 +18,10 @@
 
 #define RSP_Only_Head 10
 #define RSP_MSG 11
-#define RSP_IPRules 12
-#define RSP_IPLogs 13
-#define RSP_NATRules 14
+#define RSP_IPRules 12  // body为IPRule[]
+#define RSP_IPLogs 13   // body为IPlog[]
+#define RSP_NATRules 14 // body为NATRecord[]
+#define RSP_ConnLogs 15 // body为ConnLog[]
 
 struct IPRule {
     char name[MAXRuleNameLen+1];
@@ -59,6 +60,16 @@ struct NATRecord { // NAT 记录 or 规则(源IP端口转换)
     struct NATRecord* nx;
 };
 
+struct ConnLog {
+    unsigned int saddr;
+    unsigned int daddr;
+    unsigned short sport;
+    unsigned short dport;
+    u_int8_t protocol;
+    int natType;
+    struct NATRecord nat; // NAT记录
+};
+
 struct APPRequest {
     unsigned int tp;
     char ruleName[MAXRuleNameLen+1];
@@ -74,6 +85,10 @@ struct KernelResponseHeader {
     unsigned int bodyTp;
     unsigned int arrayLen;
 };
+
+#define NAT_TYPE_NO 0
+#define NAT_TYPE_SRC 1
+#define NAT_TYPE_DEST 2
 
 // ----- netlink 相关 -----
 #include <linux/netlink.h>
@@ -113,10 +128,6 @@ int addLogBySKB(unsigned int action, struct sk_buff *skb);
 #define CONN_EXPIRES 7
 // 定期清理超时连接的时间间隔（秒）
 #define CONN_ROLL_INTERVAL 5
-
-#define NAT_TYPE_NO 0
-#define NAT_TYPE_SRC 1
-#define NAT_TYPE_DEST 2
 
 typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
 

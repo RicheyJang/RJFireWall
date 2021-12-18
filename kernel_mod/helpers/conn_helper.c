@@ -176,14 +176,14 @@ void* formAllConns(unsigned int *len) {
     struct KernelResponseHeader *head;
     struct rb_node *node;
 	struct connNode *now;
-	struct IPLog log;
+	struct ConnLog log;
     void *mem,*p;
     unsigned int count;
     read_lock(&connLock);
 	// 计算总量
     for (node=rb_first(&connRoot),count=0;node;node=rb_next(node),count++); 
 	// 申请回包空间
-	*len = sizeof(struct KernelResponseHeader) + sizeof(struct IPLog) * count;
+	*len = sizeof(struct KernelResponseHeader) + sizeof(struct ConnLog) * count;
 	mem = kzalloc(*len, GFP_ATOMIC);
     if(mem == NULL) {
         printk(KERN_WARNING "[fw conns] formAllConns kzalloc fail.\n");
@@ -192,18 +192,19 @@ void* formAllConns(unsigned int *len) {
     }
     // 构建回包
     head = (struct KernelResponseHeader *)mem;
-    head->bodyTp = RSP_IPLogs;
+    head->bodyTp = RSP_ConnLogs;
     head->arrayLen = count;
     p=(mem + sizeof(struct KernelResponseHeader));
-    for (node = rb_first(&connRoot); node; node=rb_next(node),p=p+sizeof(struct IPLog)) {
+    for (node = rb_first(&connRoot); node; node=rb_next(node),p=p+sizeof(struct ConnLog)) {
 		now = rb_entry(node, struct connNode, node);
 		log.saddr = now->key[0];
 		log.daddr = now->key[1];
 		log.sport = (unsigned short)(now->key[2] >> 16);
 		log.dport = (unsigned short)(now->key[2] & 0xFFFFu);
 		log.protocol = now->protocol;
-		log.action = NF_ACCEPT;
-		memcpy(p, &log, sizeof(struct IPLog));
+		log.natType = now->natType;
+		log.nat = now->nat;
+		memcpy(p, &log, sizeof(struct ConnLog));
 	}
     read_unlock(&connLock);
     return mem;

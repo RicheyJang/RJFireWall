@@ -29,6 +29,11 @@
 		"stdio.h": "c",
 		"time.h": "c",
 		"rbtree.h": "c",
-		"string.h": "c"
+		"string.h": "c",
+		"common.h": "c",
+		"in6.h": "c",
+		"socket.h": "c",
+		"contact.h": "c",
+		"cstdlib": "c"
 	},
 }

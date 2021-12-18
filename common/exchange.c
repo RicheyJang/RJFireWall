@@ -1,15 +1,16 @@
-#include "exchange_msg.h"
+#include "common.h"
 
-// 与内核交换数据，无需预先开好dmsg的空间，但要自行free
-int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen) {
+struct KernelResponse exchangeMsgK(void *smsg, unsigned int slen) {
 	struct sockaddr_nl local;
 	struct sockaddr_nl kpeer;
-	int kpeerlen = sizeof(struct sockaddr_nl);
+	struct KernelResponse rsp;
+	int dlen, kpeerlen = sizeof(struct sockaddr_nl);
 	// init socket
 	int skfd = socket(PF_NETLINK, SOCK_RAW, NETLINK_MYFW);
 	if (skfd < 0) {
 		//printf("[exchangeMsgK] can not create a netlink socket\n");
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
 	// bind
 	memset(&local, 0, sizeof(local));
@@ -19,7 +20,8 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	if (bind(skfd, (struct sockaddr *) &local, sizeof(local)) != 0) {
 		//printf("[exchangeMsgK] bind() error\n");
 		close(skfd);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
 	memset(&kpeer, 0, sizeof(kpeer));
 	kpeer.nl_family = AF_NETLINK;
@@ -30,7 +32,8 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 	if(!message) {
 		//printf("[exchangeMsgK] malloc fail");
 		close(skfd);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
 	memset(message, '\0', sizeof(struct nlmsghdr));
 	message->nlmsg_len = NLMSG_SPACE(slen);
@@ -44,7 +47,8 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 		//printf("[exchangeMsgK] sendto fail");
 		close(skfd);
 		free(message);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
 	// recv msg
 	struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD)*sizeof(uint8_t));
@@ -52,29 +56,38 @@ int exchangeMsgK(void *smsg, unsigned int slen, void **dmsg, unsigned int *dlen)
 		//printf("[exchangeMsgK] nlh malloc fail");
 		close(skfd);
 		free(message);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
 	if (!recvfrom(skfd, nlh, NLMSG_SPACE(MAX_PAYLOAD), 0, (struct sockaddr *) &kpeer, (socklen_t *)&kpeerlen)) {
 		//printf("[exchangeMsgK] recvfrom fail");
 		close(skfd);
 		free(message);
 		free(nlh);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
-	*dlen = nlh->nlmsg_len - NLMSG_SPACE(0);
-	*dmsg = malloc(*dlen);
-	if(!(*dmsg)) {
+	dlen = nlh->nlmsg_len - NLMSG_SPACE(0);
+	rsp.data = malloc(dlen);
+	if(!(rsp.data)) {
 		//printf("[exchangeMsgK] dmsg malloc fail");
 		close(skfd);
 		free(message);
 		free(nlh);
-		return -1;
+		rsp.code = ERROR_CODE_EXCHANGE;
+		return rsp;
 	}
-	memset(*dmsg, 0, *dlen);
-	memcpy(*dmsg, NLMSG_DATA(nlh), *dlen);
+	memset(rsp.data, 0, dlen);
+	memcpy(rsp.data, NLMSG_DATA(nlh), dlen);
+	rsp.code = dlen - sizeof(struct KernelResponseHeader);
+	if(rsp.code < 0) {
+		rsp.code = ERROR_CODE_EXCHANGE;
+	}
+	rsp.header = (struct KernelResponseHeader*)rsp.data;
+	rsp.body = rsp.data + sizeof(struct KernelResponseHeader);
 	// over
 	close(skfd);
 	free(message);
 	free(nlh);
-	return *dlen;
+	return rsp;
 }
