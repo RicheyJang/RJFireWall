@@ -26,7 +26,7 @@ void dealResponseAtCmd(struct KernelResponse rsp) {
 		printf("succeed to delete %d rules.\n", rsp.header->arrayLen);
 		break;
 	case RSP_MSG:
-		printf("From kernel: %s\n", rsp.body);
+		printf("From kernel: %s\n", (char*)rsp.body);
 		break;
 	case RSP_IPRules:
 		showRules((struct IPRule*)rsp.body, rsp.header->arrayLen);
@@ -40,6 +40,9 @@ void dealResponseAtCmd(struct KernelResponse rsp) {
 	case RSP_ConnLogs:
 		showConns((struct ConnLog*)rsp.body, rsp.header->arrayLen);
 		break;
+	}
+	if(rsp.header->bodyTp != RSP_Only_Head && rsp.body != NULL) {
+		free(rsp.data);
 	}
 }
 
