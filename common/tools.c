@@ -76,3 +76,15 @@ int IPint2IPstrNoMask(unsigned int ip, char *ipStr) {
 	sprintf(ipStr, "%u.%u.%u.%u", ips[0], ips[1], ips[2], ips[3]);
 	return 0;
 }
+
+int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr) {
+    unsigned int i,ips[4];
+    if(ipStr == NULL) {
+        return -1;
+    }
+    for(i=0;i<4;i++) {
+        ips[i] = ((ip >> ((3-i)*8)) & 0xFFU);
+    }
+	sprintf(ipStr, "%u.%u.%u.%u:%u", ips[0], ips[1], ips[2], ips[3], port);
+	return 0;
+}

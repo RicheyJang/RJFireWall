@@ -46,6 +46,14 @@ void dealResponseAtCmd(struct KernelResponse rsp) {
 	}
 }
 
+void printLine(int len) {
+	int i;
+	for(i = 0; i < 76; i++) {
+		printf("-");
+	}
+	printf("\n");
+}
+
 int showOneRule(struct IPRule rule) {
 	char saddr[25],daddr[25],sport[13],dport[13],proto[6],action[8],log[5];
 	// ip
@@ -179,8 +187,8 @@ int showOneConn(struct ConnLog log) {
 	struct tm * timeinfo;
 	char saddr[25],daddr[25],proto[6];
 	// ip
-	IPint2IPstrNoMask(log.saddr,saddr);
-	IPint2IPstrNoMask(log.daddr,daddr);
+	IPint2IPstrWithPort(log.saddr,log.sport,saddr);
+	IPint2IPstrWithPort(log.daddr,log.dport,daddr);
 	// protocol
 	if(log.protocol == IPPROTO_TCP) {
 		sprintf(proto, "TCP");
@@ -193,7 +201,15 @@ int showOneConn(struct ConnLog log) {
 	} else {
 		sprintf(proto, "other");
 	}
-	printf("%-5s %15s:%-5u->%15s:%-5u Established\n",proto, saddr, log.sport, daddr, log.dport);
+	printf("| %-5s |  %21s | -> |  %21s | Established |\n",proto, saddr, daddr);
+	if(log.natType == NAT_TYPE_SRC) {
+		IPint2IPstrWithPort(log.nat.daddr, log.nat.dport, saddr);
+		printf("| %-5s |=>%21s | -> |  %21c | %11c |\n", "NAT", saddr, ' ', ' ');
+	} else if(log.natType == NAT_TYPE_DEST) {
+		IPint2IPstrWithPort(log.nat.daddr, log.nat.dport, daddr);
+		printf("| %-5s |  %21c | -> |=>%21s | %11c |\n", "NAT", ' ', daddr, ' ');
+	}
+	printLine(78);
 }
 
 int showConns(struct ConnLog *logs, int len) {
@@ -203,6 +219,7 @@ int showConns(struct ConnLog *logs, int len) {
 		return 0;
 	}
 	printf("connection num: %d\n", len);
+	printLine(78);
 	for(i = 0; i < len; i++) {
 		showOneConn(logs[i]);
 	}

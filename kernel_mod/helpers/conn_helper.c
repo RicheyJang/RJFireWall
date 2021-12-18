@@ -112,7 +112,7 @@ struct connNode *hasConn(unsigned int sip, unsigned int dip, unsigned short spor
 // 新建连接
 struct connNode *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log) {
 	// 初始化
-	struct connNode *node = (struct connNode *)kzalloc(sizeof(connNode), GFP_KERNEL);
+	struct connNode *node = (struct connNode *)kzalloc(sizeof(connNode), GFP_ATOMIC);
 	if(node == NULL) {
 		printk(KERN_WARNING "[fw conns] kzalloc fail.\n");
 		return 0;

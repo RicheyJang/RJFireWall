@@ -145,5 +145,6 @@ struct KernelResponse getAllConns(void);
 int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask);
 int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr);
 int IPint2IPstrNoMask(unsigned int ip, char *ipStr);
+int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr);
 
 #endif
