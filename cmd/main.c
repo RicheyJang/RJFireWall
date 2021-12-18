@@ -197,7 +197,5 @@ int main(int argc, char *argv[]) {
 			wrongCommand();
 	} else 
 		wrongCommand();
-	if(rsp.code != ERROR_CODE_EXIT) {
-		dealResponseAtCmd(rsp);
-	}
+	dealResponseAtCmd(rsp);
 }
