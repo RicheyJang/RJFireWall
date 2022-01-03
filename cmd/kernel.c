@@ -48,7 +48,7 @@ void dealResponseAtCmd(struct KernelResponse rsp) {
 
 void printLine(int len) {
 	int i;
-	for(i = 0; i < 76; i++) {
+	for(i = 0; i < len; i++) {
 		printf("-");
 	}
 	printf("\n");
@@ -88,7 +88,7 @@ int showOneRule(struct IPRule rule) {
 	} else if(rule.protocol == IPPROTO_ICMP) {
 		sprintf(proto, "ICMP");
 	} else if(rule.protocol == IPPROTO_IP) {
-		sprintf(proto, "any");
+		sprintf(proto, "IP");
 	} else {
 		sprintf(proto, "other");
 	}
@@ -99,8 +99,9 @@ int showOneRule(struct IPRule rule) {
 		sprintf(log, "no");
 	}
 	// print
-	printf("%*s:\t%-18s\t%-18s\t%-11s\t%-11s\t%-8s\t%-6s\t%-3s\n", MAXRuleNameLen,
+	printf("| %-*s | %-18s | %-18s | %-11s | %-11s | %-8s | %-6s | %-3s |\n", MAXRuleNameLen,
 	rule.name, saddr, daddr, sport, dport, proto, action, log);
+	printLine(111);
 }
 
 int showRules(struct IPRule *rules, int len) {
@@ -109,9 +110,11 @@ int showRules(struct IPRule *rules, int len) {
 		printf("No rules now.\n");
 		return 0;
 	}
-	printf("rule num: %d\n", len);
-	printf("%*s:\t%-18s\t%-18s\t%-11s\t%-11s\t%-8s\t%-6s\t%-3s\n", MAXRuleNameLen,
+	//printf("rule num: %d\n", len);
+	printLine(111);
+	printf("| %-*s | %-18s | %-18s | %-11s | %-11s | %-8s | %-6s | %-3s |\n", MAXRuleNameLen,
 	 "name", "source ip", "target ip", "source port", "target port", "protocol", "action", "log");
+	printLine(111);
 	for(i = 0; i < len; i++) {
 		showOneRule(rules[i]);
 	}
@@ -119,18 +122,21 @@ int showRules(struct IPRule *rules, int len) {
 }
 
 int showNATRules(struct NATRecord *rules, int len) {
-	int i;
+	int i, col = 66;
 	char saddr[25],daddr[25];
 	if(len == 0) {
 		printf("No NAT rules now.\n");
 		return 0;
 	}
-	printf("NAT rule num: %d\n", len);
-	printf("seq:\t%18s->%-18s:%-11s\n", "source ip", "NAT ip", "NAT port");
+	//printf("NAT rule num: %d\n", len);
+	printLine(col);
+	printf("| seq | %18s |->| %-18s | %-11s |\n", "source ip", "NAT ip", "NAT port");
+	printLine(col);
 	for(i = 0; i < len; i++) {
 		IPint2IPstr(rules[i].saddr,rules[i].smask,saddr);
 		IPint2IPstrNoMask(rules[i].daddr,daddr);
-		printf("%d:\t%18s->%-18s:%u-%u\n", i, saddr, daddr, rules[i].sport, rules[i].dport);
+		printf("| %3d | %18s |->| %-18s | %5u~%-5u |\n", i, saddr, daddr, rules[i].sport, rules[i].dport);
+		printLine(col);
 	}
 	return 0;
 }
@@ -139,15 +145,15 @@ int showOneLog(struct IPLog log) {
 	struct tm * timeinfo;
 	char saddr[25],daddr[25],proto[6],action[8],tm[21];
 	// ip
-	IPint2IPstrNoMask(log.saddr,saddr);
-	IPint2IPstrNoMask(log.daddr,daddr);
+	IPint2IPstrWithPort(log.saddr, log.sport, saddr);
+	IPint2IPstrWithPort(log.daddr, log.dport, daddr);
 	// action
 	if(log.action == NF_ACCEPT) {
-		sprintf(action, "accept");
+		sprintf(action, "[ACCEPT]");
 	} else if(log.action == NF_DROP) {
-		sprintf(action, "drop");
+		sprintf(action, "[DROP]");
 	} else {
-		sprintf(action, "other");
+		sprintf(action, "[unknown]");
 	}
 	// protocol
 	if(log.protocol == IPPROTO_TCP) {
@@ -157,7 +163,7 @@ int showOneLog(struct IPLog log) {
 	} else if(log.protocol == IPPROTO_ICMP) {
 		sprintf(proto, "ICMP");
 	} else if(log.protocol == IPPROTO_IP) {
-		sprintf(proto, "any");
+		sprintf(proto, "IP");
 	} else {
 		sprintf(proto, "other");
 	}
@@ -166,8 +172,8 @@ int showOneLog(struct IPLog log) {
 	sprintf(tm, "%4d-%02d-%02d %02d:%02d:%02d",
 		1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	// print
-	printf("[%s] %-6s %-5s %15s:%-5u->%15s:%-5u len=%uB\n",
-		tm, action, proto, saddr, log.sport, daddr, log.dport, log.len);
+	printf("[%s] %-9s %s->%s proto=%s len=%uB\n",
+		tm, action, saddr, daddr, proto, log.len);
 }
 
 int showLogs(struct IPLog *logs, int len) {
@@ -176,7 +182,7 @@ int showLogs(struct IPLog *logs, int len) {
 		printf("No logs now.\n");
 		return 0;
 	}
-	printf("log num: %d\n", len);
+	printf("sum: %d\n", len);
 	for(i = 0; i < len; i++) {
 		showOneLog(logs[i]);
 	}
@@ -201,27 +207,30 @@ int showOneConn(struct ConnLog log) {
 	} else {
 		sprintf(proto, "other");
 	}
-	printf("| %-5s |  %21s | -> |  %21s | Established |\n",proto, saddr, daddr);
+	printf("| %-5s |  %21s |->|  %21s | Established |\n",proto, saddr, daddr);
 	if(log.natType == NAT_TYPE_SRC) {
 		IPint2IPstrWithPort(log.nat.daddr, log.nat.dport, saddr);
-		printf("| %-5s |=>%21s | -> |  %21c | %11c |\n", "NAT", saddr, ' ', ' ');
+		printf("| %-5s |=>%21s |->|  %21c | %11c |\n", "NAT", saddr, ' ', ' ');
 	} else if(log.natType == NAT_TYPE_DEST) {
 		IPint2IPstrWithPort(log.nat.daddr, log.nat.dport, daddr);
-		printf("| %-5s |  %21c | -> |=>%21s | %11c |\n", "NAT", ' ', daddr, ' ');
+		printf("| %-5s |  %21c |->|=>%21s | %11c |\n", "NAT", ' ', daddr, ' ');
 	}
-	printLine(78);
+	//printLine(80);
 }
 
 int showConns(struct ConnLog *logs, int len) {
-	int i;
+	int i, col = 78;
 	if(len == 0) {
 		printf("No connections now.\n");
 		return 0;
 	}
 	printf("connection num: %d\n", len);
-	printLine(78);
+	printLine(col);
+	printf("| %-5s |  %21s |->|  %21s | %11s |\n", "proto", "source addr", "dest addr", "status");
+	printLine(col);
 	for(i = 0; i < len; i++) {
 		showOneConn(logs[i]);
 	}
+	printLine(col);
 	return 0;
 }

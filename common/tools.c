@@ -78,6 +78,9 @@ int IPint2IPstrNoMask(unsigned int ip, char *ipStr) {
 }
 
 int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr) {
+    if(port == 0) {
+        return IPint2IPstrNoMask(ip, ipStr);
+    }
     unsigned int i,ips[4];
     if(ipStr == NULL) {
         return -1;

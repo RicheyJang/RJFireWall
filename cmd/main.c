@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 		// 过滤日志
 			unsigned int num = 0;
 			if(argc > 3)
-				sscanf(argv[2], "%u", &num);
+				sscanf(argv[3], "%u", &num);
 			rsp = getLogs(num);
 		} else if(strcmp(argv[2],"con")==0 || argv[2][0] == 'c') {
 		// 连接状态
