@@ -2,7 +2,7 @@
 #include "helper.h"
 #include "hook.h"
 
-const unsigned int DEFAULT_ACTION = NF_ACCEPT;
+unsigned int DEFAULT_ACTION = NF_ACCEPT;
 
 unsigned int hook_main(void *priv,struct sk_buff *skb,const struct nf_hook_state *state) {
     struct IPRule rule;
